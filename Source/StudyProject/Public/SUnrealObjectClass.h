@@ -14,5 +14,17 @@ class STUDYPROJECT_API USUnrealObjectClass : public UObject
 {
 public:
 	GENERATED_BODY()
+	
+public:
+	USUnrealObjectClass();
+
+	UFUNCTION()
+	void HelloUnreal();
+
+	const FString& GetName() const { return Name; }
+
+public:
+	UPROPERTY()
+	FString Name;
 
 };
