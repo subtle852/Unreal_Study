@@ -4,6 +4,8 @@
 #include "Game/SGameInstance.h"
 #include "Kismet/KismetSystemLibrary.h"// PrintString을 사용하기 위한 헤더파일
 #include "SUnrealObjectClass.h"
+#include "Examples/SFlyable.h"
+#include "Examples/SPigeon.h"
 
 USGameInstance::USGameInstance()
 {
@@ -30,8 +32,7 @@ void USGameInstance::Init()
 	// 해당 함수들은 디버깅용으로
 	// 디버깅이 끝나면 주석 처리를 해주는 것이 기본
 
-
-
+#pragma region Property
 	////////////////////////////////////////
 	//실습1 프로퍼티를 이용하여 Name 출력하기//
 	////////////////////////////////////////
@@ -57,35 +58,46 @@ void USGameInstance::Init()
 	//실습2 프로퍼티를 이용하여 Name 출력 + Function 호출하기//
 	/////////////////////////////////////////////////////////
 
-	USUnrealObjectClass* USObject1 = NewObject<USUnrealObjectClass>();
-	// 언리얼은 new 키워드가 아닌 NewObject<>() API를 사용함
+	//USUnrealObjectClass* USObject1 = NewObject<USUnrealObjectClass>();
+	//// 언리얼은 new 키워드가 아닌 NewObject<>() API를 사용함
 
-	// 1) 변수 실습
+	//// 1) 변수 실습
 
-	UE_LOG(LogTemp, Log, TEXT("USObject1's Name: %s"), *USObject1->GetName());
-	// 클래스에서 직접 정의해준 Getter()를 활용한 일반적인 FString 출력
+	//UE_LOG(LogTemp, Log, TEXT("USObject1's Name: %s"), *USObject1->GetName());
+	//// 클래스에서 직접 정의해준 Getter()를 활용한 일반적인 FString 출력
 
-	FProperty* NameProperty = USUnrealObjectClass::StaticClass()->FindPropertyByName(TEXT("Name"));
+	//FProperty* NameProperty = USUnrealObjectClass::StaticClass()->FindPropertyByName(TEXT("Name"));
 
-	FString CompiletimeUSObjectName;
-	if (nullptr != NameProperty)
-	{
-		NameProperty->GetValue_InContainer(USObject1, &CompiletimeUSObjectName);
-		UE_LOG(LogTemp, Log, TEXT("CompiletimeUSObjectName: %s"), *CompiletimeUSObjectName);
-	}
-	// 프로퍼티 시스템의 Getter()를 활용한 FString 출력
+	//FString CompiletimeUSObjectName;
+	//if (nullptr != NameProperty)
+	//{
+	//	NameProperty->GetValue_InContainer(USObject1, &CompiletimeUSObjectName);
+	//	UE_LOG(LogTemp, Log, TEXT("CompiletimeUSObjectName: %s"), *CompiletimeUSObjectName);
+	//}
+	//// 프로퍼티 시스템의 Getter()를 활용한 FString 출력
 
-	// 2) 함수 실습
+	//// 2) 함수 실습
 
-	USObject1->HelloUnreal();
-	// 일반적인 함수 호출 방법
+	//USObject1->HelloUnreal();
+	//// 일반적인 함수 호출 방법
 
-	UFunction* HelloUnrealFunction = USObject1->GetClass()->FindFunctionByName(TEXT("HelloUnreal"));
-	if (nullptr != HelloUnrealFunction)
-	{
-		USObject1->ProcessEvent(HelloUnrealFunction, nullptr);
-	}
-	// 프로퍼티 시스템을 활용한 함수 호출 방법
+	//UFunction* HelloUnrealFunction = USObject1->GetClass()->FindFunctionByName(TEXT("HelloUnreal"));
+	//if (nullptr != HelloUnrealFunction)
+	//{
+	//	USObject1->ProcessEvent(HelloUnrealFunction, nullptr);
+	//}
+	//// 프로퍼티 시스템을 활용한 함수 호출 방법
+#pragma endregion Property
+
+#pragma region Interface
+	USPigeon* Pigeon1 = NewObject<USPigeon>();
+	ISFlyable* Bird1 = Cast<ISFlyable>(Pigeon1);
+	// 이처럼 대부분 인터페이스 개념은 업캐스팅을 하기 위해 사용함
+
+	if(nullptr != Bird1)
+	Bird1->Fly();
+#pragma endregion Interface
+
 }
 
 void USGameInstance::Shutdown()
