@@ -2,10 +2,12 @@
 
 
 #include "Game/SGameInstance.h"
-#include "Kismet/KismetSystemLibrary.h"// PrintString을 사용하기 위한 헤더파일
+#include "Kismet/KismetSystemLibrary.h"// PrintString을 사용하기 위한 헤더
 #include "SUnrealObjectClass.h"
 #include "Examples/SFlyable.h"
 #include "Examples/SPigeon.h"
+#include "JsonObjectConverter.h"// Json관련 헤더
+#include "UObject/SavePackage.h"// Json관련 헤더
 
 USGameInstance::USGameInstance()
 {
@@ -96,8 +98,116 @@ void USGameInstance::Init()
 
 	if(nullptr != Bird1)
 	Bird1->Fly();
+
 #pragma endregion Interface
 
+#pragma region Serialization
+	// Src
+	FBirdData SrcRawData(TEXT("Pigeon17"), 17);
+	UE_LOG(LogTemp, Log, TEXT("[SrcRawData] Name: %s, ID: %d"), *SrcRawData.Name, SrcRawData.ID);
+
+	const FString SavedDir = FPaths::Combine(FPlatformMisc::ProjectDir(), TEXT("Saved"));// 저장 경로에 Saved 폴더를 추가 
+	UE_LOG(LogTemp, Log, TEXT("SavedDir: %s"), *SavedDir);
+
+	const FString RawDataFileName(TEXT("RawData.bin"));// 직렬화해서 저장할 파일 이름
+	FString AbsolutePathForRawData = FPaths::Combine(*SavedDir, *RawDataFileName);// SavedDir에 RawDataFileName을 붙여서 최종 저장 경로인 AbsolutePathForRawData 생성
+	UE_LOG(LogTemp, Log, TEXT("Relative path for saved file: %s"), *AbsolutePathForRawData);
+	FPaths::MakeStandardFilename(AbsolutePathForRawData);// 언리얼에 맞게 파일 이름 수정
+	UE_LOG(LogTemp, Log, TEXT("Absolute path for saved file: %s"), *AbsolutePathForRawData);
+
+	FArchive* RawFileWriterAr = IFileManager::Get().CreateFileWriter(*AbsolutePathForRawData);
+	if (nullptr != RawFileWriterAr)
+	{
+		*RawFileWriterAr << SrcRawData;//RawFileWriterAr에 SrcRawData를 넘겨줌
+		RawFileWriterAr->Close();
+		delete RawFileWriterAr;
+		RawFileWriterAr = nullptr;
+	}
+
+	// Dst
+	FBirdData DstRawData;
+	FArchive* RawFileReaderAr = IFileManager::Get().CreateFileReader(*AbsolutePathForRawData);
+	if (nullptr != RawFileReaderAr)
+	{
+		*RawFileReaderAr << DstRawData;//RawFileReaderAr에서 DstRawData를 끌어냄
+		RawFileReaderAr->Close();
+		delete RawFileReaderAr;
+		RawFileReaderAr = nullptr;
+
+		UE_LOG(LogTemp, Log, TEXT("[DstRawData] Name: %s, ID: %d"), *DstRawData.Name, DstRawData.ID);
+	}
+
+	SerializedPigeon = NewObject<USPigeon>();
+	SerializedPigeon->SetName(TEXT("Pigeon76"));
+	SerializedPigeon->SetID(76);
+	UE_LOG(LogTemp, Log, TEXT("[SerializedPigeon] Name: %s, ID: %d"), *SerializedPigeon->GetName(), SerializedPigeon->GetID());
+
+	const FString ObjectDataFileName(TEXT("ObjectData.bin"));
+	FString AbsolutePathForObjectData = FPaths::Combine(*SavedDir, *ObjectDataFileName);// 위에서 했던 것처럼 SavedDir에 파일이름 붙여서 최종 저장 경로 생성
+	FPaths::MakeStandardFilename(AbsolutePathForObjectData);// 언리얼에 맞게 파일 이름 수정
+
+	TArray<uint8> BufferArray;// 작성하기 쉽게 uint8 1바이트
+	FMemoryWriter MemoryWriterAr(BufferArray);
+	SerializedPigeon->Serialize(MemoryWriterAr);
+
+	TUniquePtr<FArchive> ObjectDataFileWriterAr = TUniquePtr<FArchive>(IFileManager::Get().CreateFileWriter(*AbsolutePathForObjectData));
+	if (nullptr != ObjectDataFileWriterAr)
+	{
+		*ObjectDataFileWriterAr << BufferArray;
+		ObjectDataFileWriterAr->Close();
+
+		ObjectDataFileWriterAr = nullptr; //delete ObjectDataFileWriterAr; 와 같은 효과.
+	}
+
+	TArray<uint8> BufferArrayFromObjectDataFile;
+	TUniquePtr<FArchive> ObjectDataFileReaderAr = TUniquePtr<FArchive>(IFileManager::Get().CreateFileReader(*AbsolutePathForObjectData));
+	if (nullptr != ObjectDataFileReaderAr)
+	{
+		*ObjectDataFileReaderAr << BufferArrayFromObjectDataFile;
+		ObjectDataFileReaderAr->Close();
+
+		ObjectDataFileReaderAr = nullptr;
+	}
+
+	FMemoryReader MemoryReaderAr(BufferArrayFromObjectDataFile);
+	USPigeon* Pigeon77 = NewObject<USPigeon>();
+	Pigeon77->Serialize(MemoryReaderAr);
+	UE_LOG(LogTemp, Log, TEXT("[Pigeon77] Name: %s, ID: %d"), *Pigeon77->GetName(), Pigeon77->GetID());
+
+#pragma endregion Serialization
+
+#pragma region Json
+	// 저장
+	const FString JsonDataFileName(TEXT("StudyJsonFile.txt"));
+	FString AbsolutePathForJsonData = FPaths::Combine(*SavedDir, *JsonDataFileName);
+	FPaths::MakeStandardFilename(AbsolutePathForJsonData);
+
+	TSharedRef<FJsonObject> SrcJsonObject = MakeShared<FJsonObject>();// FJsonObject는 UObject 전용, FJsonValue는 값 전용 
+	FJsonObjectConverter::UStructToJsonObject(SerializedPigeon->GetClass(), SerializedPigeon, SrcJsonObject);
+
+	FString JsonOutString;
+	TSharedRef<TJsonWriter<TCHAR>> JsonWriterAr = TJsonWriterFactory<TCHAR>::Create(&JsonOutString);// 안정성을 위해 TSharedRef 사용
+	if (true == FJsonSerializer::Serialize(SrcJsonObject, JsonWriterAr))
+	{
+		FFileHelper::SaveStringToFile(JsonOutString, *AbsolutePathForJsonData);
+	}
+
+	// 읽기
+	FString JsonInString;
+	FFileHelper::LoadFileToString(JsonInString, *AbsolutePathForJsonData);
+	TSharedRef<TJsonReader<TCHAR>> JsonReaderAr = TJsonReaderFactory<TCHAR>::Create(JsonInString);
+
+	TSharedPtr<FJsonObject> DstJsonObject;
+	if (true == FJsonSerializer::Deserialize(JsonReaderAr, DstJsonObject))// Deserialize 해서 DstJsonObject에 저장을 하는 것
+	{
+		USPigeon* Pigeon78 = NewObject<USPigeon>();
+		if (true == FJsonObjectConverter::JsonObjectToUStruct(DstJsonObject.ToSharedRef(), Pigeon78->GetClass(), Pigeon78))
+		{
+			UE_LOG(LogTemp, Log, TEXT("[Pigeon78] Name: %s, ID: %d"), *Pigeon78->GetName(), Pigeon78->GetID());
+		}
+	}
+
+#pragma endregion Json
 }
 
 void USGameInstance::Shutdown()
