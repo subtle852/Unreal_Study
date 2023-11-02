@@ -27,6 +27,18 @@ public:
         return Ar;
     }
 
+    // TMap을 사용하기 위해 작성해야 하는 비교 연산자
+    bool operator==(const FBirdData& InBirdData) const
+    {
+        return ID == InBirdData.ID;
+    }
+
+    // TMap을 사용하기 위해 작성해야 하는 GetTypeHash
+    friend uint32 GetTypeHash(const FBirdData& InBirdData)
+    {
+        return GetTypeHash(InBirdData.ID);
+    }
+
     UPROPERTY()
     FString Name = TEXT("DefaultBirdName");
 
