@@ -14,6 +14,10 @@ class STUDYPROJECT_API ASTorch : public AActor
 public:	
 	ASTorch();
 
+    virtual void BeginPlay() override;
+
+    virtual void Tick(float DeltaSeconds) override;
+    
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASTorch", Meta = (AllowPrivateAccess))
     TObjectPtr<class UBoxComponent> BoxComponent;
@@ -30,12 +34,19 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ASTorch", Meta = (AllowPrivateAccess))
     int32 ID;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ASTorch", Meta = (AllowPrivateAccess))
-    int32 VisibleAnywhere;
+    //UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ASTorch", Meta = (AllowPrivateAccess))
+    //int32 VisibleAnywhere;
+
+    //UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ASTorch", Meta = (AllowPrivateAccess))
+    //int32 EditDefaultsOnly;
+
+    //UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "ASTorch", Meta = (AllowPrivateAccess))
+    //int32 EditInstanceOnly;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ASTorch", Meta = (AllowPrivateAccess))
-    int32 EditDefaultsOnly;
+    float RotationSpeed;
 
-    UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "ASTorch", Meta = (AllowPrivateAccess))
-    int32 EditInstanceOnly;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ASElectricityPole, Meta = (AllowPrivateAccess))
+    TObjectPtr<class URotatingMovementComponent> RotatingMovementComponent;
+
 };
