@@ -14,4 +14,9 @@ class STUDYPROJECT_API ASPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	ASPlayerController();
+
+private:
+	virtual void BeginPlay() override;
 };
