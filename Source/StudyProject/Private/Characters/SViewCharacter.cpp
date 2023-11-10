@@ -32,6 +32,53 @@ void ASViewCharacter::BeginPlay()
     }
 }
 
+void ASViewCharacter::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+
+    SetViewMode(EViewMode::BackView);
+}
+
+void ASViewCharacter::SetViewMode(EViewMode InViewMode)
+{
+    if (CurrentViewMode == InViewMode)
+    {
+        return;
+    }
+
+    CurrentViewMode = InViewMode;
+
+    switch (CurrentViewMode)
+    {
+        case EViewMode::BackView:
+            SpringArmComponent->TargetArmLength = 400.f;
+            SpringArmComponent->SetRelativeRotation(FRotator::ZeroRotator);
+            // ControlRotation이 Pawn의 회전과 동기화 -> Pawn의 회전이 SprintArm의 회전 동기화. 이로 인해 SetRotation()이 무의미.
+
+            bUseControllerRotationPitch = false;
+            bUseControllerRotationYaw = false;
+            bUseControllerRotationRoll = false;
+
+            SpringArmComponent->bUsePawnControlRotation = true;
+            SpringArmComponent->bDoCollisionTest = true;
+            SpringArmComponent->bInheritPitch = true;
+            SpringArmComponent->bInheritYaw = true;
+            SpringArmComponent->bInheritRoll = false;
+
+            GetCharacterMovement()->bOrientRotationToMovement = true;
+            GetCharacterMovement()->bUseControllerDesiredRotation = false;
+            GetCharacterMovement()->RotationRate = FRotator(0.f, 480.f, 0.f);
+
+            break;
+
+        case EViewMode::End:
+            break;
+    
+        default:
+            break;
+    }
+}
+
 void ASViewCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -48,25 +95,53 @@ void ASViewCharacter::Move(const FInputActionValue& InValue)
 {
     FVector2D MovementVector = InValue.Get<FVector2D>();
 
-    const FRotator ControlRotation = GetController()->GetControlRotation();
-    const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
-    // 플레이어의 회전 의지 중 Yaw 성분으로만 전진 방향을 결정하고자 함.
+    switch (CurrentViewMode)
+    {
+        case EViewMode::None:
+            break;
 
-    const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-    const FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+        case EViewMode::BackView:
+        { // Switch-Case 구문 내에서 Scope를 지정하면 해당 Scope 내에서 변수 선언이 가능해짐.
+            const FRotator ControlRotation = GetController()->GetControlRotation();
+            const FRotator ControlRotationYaw(0.f, ControlRotation.Yaw, 0.f);
 
-    AddMovementInput(ForwardVector, MovementVector.X);
-    AddMovementInput(RightVector, MovementVector.Y);
+            const FVector ForwardVector = FRotationMatrix(ControlRotationYaw).GetUnitAxis(EAxis::X);
+            const FVector RightVector = FRotationMatrix(ControlRotationYaw).GetUnitAxis(EAxis::Y);
+
+            AddMovementInput(ForwardVector, MovementVector.X);
+            AddMovementInput(RightVector, MovementVector.Y);
+
+            break;
+        }
+
+        case EViewMode::End:
+            break;
+
+        default:
+            AddMovementInput(GetActorForwardVector(), MovementVector.X);
+            AddMovementInput(GetActorRightVector(), MovementVector.Y);
+            break;
+    }
 }
 
 void ASViewCharacter::Look(const FInputActionValue& InValue)
 {
-    if (nullptr != GetController())
-    {
-        FVector2D LookVector = InValue.Get<FVector2D>();
+    FVector2D LookVector = InValue.Get<FVector2D>();
 
-        AddControllerYawInput(LookVector.X);
-        // 아까 IMC에서 X에다가 마우스 좌우 값을 넣었음.
-        AddControllerPitchInput(LookVector.Y);
+    switch (CurrentViewMode)
+    {
+        case EViewMode::None:
+            break;
+
+        case EViewMode::BackView:
+            AddControllerYawInput(LookVector.X);
+            AddControllerPitchInput(LookVector.Y);
+            break;
+
+        case EViewMode::End:
+            break;
+
+        default:
+            break;
     }
 }
