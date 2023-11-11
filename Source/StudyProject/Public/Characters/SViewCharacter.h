@@ -12,6 +12,7 @@ enum class EViewMode : uint8
 {
     None,
     BackView,
+    QuarterView,
     End
 };
 
@@ -26,6 +27,10 @@ public:
     virtual void BeginPlay() override;
 
     virtual void PossessedBy(AController* NewController) override;
+
+    virtual void Tick(float DeltaSeconds) override;
+
+    void ChangeView(const FInputActionValue& InValue);
 
     void SetViewMode(EViewMode InViewMode);
 
@@ -46,5 +51,17 @@ private:
 
     EViewMode CurrentViewMode = EViewMode::None;
     // UPROPERTY() 매크로를 사용하지 않으므로, 초기화에 유념해야함.
+
+    FVector DirectionToMove = FVector::ZeroVector;
+
+    // ChangeView를 자연스럽게 하기위한 변수
+    float DestArmLength = 0.f;
+
+    float ArmLengthChangeSpeed = 3.f;
+
+    FRotator DestArmRotation = FRotator::ZeroRotator;
+
+    float ArmRotationChangeSpeed = 10.f;
+
 
 };

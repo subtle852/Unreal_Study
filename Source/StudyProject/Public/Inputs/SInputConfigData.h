@@ -20,4 +20,8 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<class UInputAction> LookAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<class UInputAction> ChangeViewAction;
+
 };
