@@ -35,3 +35,30 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         }
     }
 }
+
+void USAnimInstance::PlayAttackAnimMontage()
+{
+    if (true == ::IsValid(AttackAnimMontage))
+    {
+        if (false == Montage_IsPlaying(AttackAnimMontage))
+        {
+            Montage_Play(AttackAnimMontage);
+        }
+    }
+}
+
+void USAnimInstance::AnimNotify_CheckHit()
+{
+    if (true == OnCheckHitDelegate.IsBound())
+    {
+        OnCheckHitDelegate.Broadcast();
+    }
+}
+
+void USAnimInstance::AnimNotify_CheckCanNextCombo()
+{
+    if (true == OnCheckCanNextComboDelegate.IsBound())
+    {
+        OnCheckCanNextComboDelegate.Broadcast();
+    }
+}

@@ -27,4 +27,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<class UInputAction> JumpAction;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<class UInputAction> AttackAction;
+
 };

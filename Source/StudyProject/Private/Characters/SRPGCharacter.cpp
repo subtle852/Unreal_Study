@@ -11,12 +11,15 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Inputs/SInputConfigData.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Animations/SAnimInstance.h"
 
 ASRPGCharacter::ASRPGCharacter()
+    : bIsAttacking(false)
 {
     PrimaryActorTick.bCanEverTick = false;
 
-    CameraComponent->SetRelativeLocation(FVector(0.f, 100.f, 0.f));
+    CameraComponent->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 
     bUseControllerRotationPitch = false;
     bUseControllerRotationYaw = false;
@@ -46,6 +49,20 @@ void ASRPGCharacter::BeginPlay()
             Subsystem->AddMappingContext(PlayerCharacterInputMappingContext, 0);
         }
     }
+
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (true == ::IsValid(AnimInstance))
+    {
+        AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackMontageEnded);
+        AnimInstance->OnCheckHitDelegate.AddDynamic(this, &ThisClass::CheckHit);
+        AnimInstance->OnCheckCanNextComboDelegate.AddDynamic(this, &ThisClass::CheckCanNextCombo);
+    }
+}
+
+void ASRPGCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+    bIsAttacking = false;
 }
 
 void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -58,6 +75,7 @@ void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
     }
 }
 
@@ -83,4 +101,71 @@ void ASRPGCharacter::Look(const FInputActionValue& InValue)
 
     AddControllerYawInput(LookAxisVector.X);
     AddControllerPitchInput(LookAxisVector.Y);
+}
+
+void ASRPGCharacter::Attack(const FInputActionValue& InValue)
+{
+   //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
+
+    if (0 == CurrentComboCount)
+    {
+        BeginCombo();
+        return;
+    }
+    else
+    {
+        ensure(FMath::IsWithinInclusive<int32>(CurrentComboCount, 1, MaxComboCount));
+        bIsAttackKeyPressed = true;
+    }
+}
+
+void ASRPGCharacter::CheckHit()
+{
+    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("CheckHit() has been called.")));
+    // 다음 단원에서 Collision에 대해 배움.
+}
+
+void ASRPGCharacter::BeginCombo()
+{
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (false == ::IsValid(AnimInstance))
+    {
+        return;
+    }
+
+    CurrentComboCount = 1;
+
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+    AnimInstance->PlayAttackAnimMontage();
+
+    FOnMontageEnded OnMontageEndedDelegate;
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackAnimMontage);
+}
+
+void ASRPGCharacter::CheckCanNextCombo()
+{
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (false == ::IsValid(AnimInstance))
+    {
+        return;
+    }
+
+    if (true == bIsAttackKeyPressed)
+    {
+        CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 1, MaxComboCount);
+
+        FName NextSectionName = *FString::Printf(TEXT("%s%d"), *AttackAnimMontageSectionName, CurrentComboCount);
+        AnimInstance->Montage_JumpToSection(NextSectionName, AnimInstance->AttackAnimMontage);
+        bIsAttackKeyPressed = false;
+    }
+}
+
+void ASRPGCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
+{
+    ensure(0 != CurrentComboCount);
+    CurrentComboCount = 0;
+    bIsAttackKeyPressed = false;
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
