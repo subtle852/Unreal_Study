@@ -12,6 +12,8 @@ class STUDYPROJECT_API ASRPGCharacter : public ASCharacter
 {
     GENERATED_BODY()
 
+    friend class UAN_CheckHit;
+
 public:
     ASRPGCharacter();
 
@@ -69,4 +71,8 @@ private:
     bool bIsAttackKeyPressed = false;
     // 에디터에서 관리되거나 시리얼라이즈 될 필요 없으므로 그냥 bool 자료형 사용가능
 
+
+    float AttackRange = 200.f;
+
+    float AttackRadius = 50.f;
 };
