@@ -157,6 +157,14 @@ void ASRPGCharacter::CheckHit()
         Params
     );
 
+	//bool bResult = GetWorld()->LineTraceSingleByChannel(
+	//	HitResult,
+	//	GetActorLocation(),
+	//	GetActorLocation() + AttackRange,
+	//	ECollisionChannel::ECC_EngineTraceChannel2,
+    //  Params
+	//);
+
     if (true == bResult)
     {
         if (true == ::IsValid(HitResult.GetActor()))
