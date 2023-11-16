@@ -62,6 +62,9 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess = true))
     float RightInputValue;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", meta = (AllowPrivateAccess))
+    TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
+
     uint8 bIsAttacking : 1;
 
     FString AttackAnimMontageSectionName = FString(TEXT("Attack"));

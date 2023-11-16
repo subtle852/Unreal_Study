@@ -15,6 +15,7 @@
 #include "Animations/SAnimInstance.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
+#include "Particles/ParticleSystemComponent.h"
 
 ASRPGCharacter::ASRPGCharacter()
     : bIsAttacking(false)
@@ -38,6 +39,10 @@ ASRPGCharacter::ASRPGCharacter()
     GetCharacterMovement()->RotationRate = FRotator(0.f, 480.f, 0.f);
 
     GetCapsuleComponent()->SetCollisionProfileName(TEXT("SCharacter"));
+
+    ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
+    ParticleSystemComponent->SetupAttachment(GetCapsuleComponent());
+    ParticleSystemComponent->SetAutoActivate(false);
 }
 
 void ASRPGCharacter::BeginPlay()
@@ -82,6 +87,8 @@ float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
         GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
         GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
     }
+
+    ParticleSystemComponent->Activate(true);
 
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), CurrentHP, MaxHP));
 
@@ -130,6 +137,17 @@ void ASRPGCharacter::Attack(const FInputActionValue& InValue)
 {
    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
 
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (false == ::IsValid(AnimInstance))
+    {
+        return;
+    }
+
+    if (true == AnimInstance->bIsFalling)
+    {
+        return;
+    }
+    
     if (0 == CurrentComboCount)
     {
         BeginCombo();

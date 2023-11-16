@@ -41,11 +41,14 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void USAnimInstance::PlayAttackAnimMontage()
 {
-    if (true == ::IsValid(AttackAnimMontage))
+    if (bIsFalling == false) 
     {
-        if (false == Montage_IsPlaying(AttackAnimMontage))
+        if (true == ::IsValid(AttackAnimMontage))
         {
-            Montage_Play(AttackAnimMontage);
+            if (false == Montage_IsPlaying(AttackAnimMontage))
+            {
+                Montage_Play(AttackAnimMontage);
+            }
         }
     }
 }
