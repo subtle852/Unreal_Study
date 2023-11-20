@@ -103,6 +103,8 @@ void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     if (true == ::IsValid(EnhancedInputComponent))
     {
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintStartedAction, ETriggerEvent::Started, this, &ThisClass::SprintStarted);
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintCompletedAction, ETriggerEvent::Completed, this, &ThisClass::SprintCompleted);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
@@ -123,6 +125,25 @@ void ASRPGCharacter::Move(const FInputActionValue& InValue)
 
     AddMovementInput(ForwardDirection, MovementVector.X);
     AddMovementInput(RightDirection, MovementVector.Y);
+}
+
+void ASRPGCharacter::SprintStarted(const FInputActionValue& InValue)
+{
+    if (GetCharacterMovement()->IsFalling() == true)
+        return;
+
+    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintStarted")));
+
+    bIsSprint = true;
+    GetCharacterMovement()->MaxWalkSpeed *= SprintSpeedMultiplier;
+}
+
+void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
+{
+    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintCompleted")));
+
+    bIsSprint = false;
+    GetCharacterMovement()->MaxWalkSpeed = 500.f;
 }
 
 void ASRPGCharacter::Look(const FInputActionValue& InValue)

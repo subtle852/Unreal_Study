@@ -19,6 +19,12 @@ public:
     TObjectPtr<class UInputAction> MoveAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<class UInputAction> SprintStartedAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<class UInputAction> SprintCompletedAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<class UInputAction> LookAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

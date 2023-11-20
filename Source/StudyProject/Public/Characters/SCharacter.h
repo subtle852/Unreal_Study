@@ -24,6 +24,8 @@ public:
 
     bool IsDead() const { return bIsDead; }
 
+    bool IsSprint() const { return bIsSprint; }
+
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess))
     TObjectPtr<class USpringArmComponent> SpringArmComponent;
@@ -39,5 +41,11 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     uint8 bIsDead : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    uint8 bIsSprint : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    float SprintSpeedMultiplier = 1.7f;
 
 };

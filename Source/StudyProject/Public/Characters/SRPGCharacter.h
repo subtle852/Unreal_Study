@@ -34,6 +34,10 @@ protected:
 private:
     void Move(const FInputActionValue& InValue);
 
+    void SprintStarted(const FInputActionValue& InValue);
+
+    void SprintCompleted(const FInputActionValue& InValue);
+
     void Look(const FInputActionValue& InValue);
 
     void Attack(const FInputActionValue& InValue);
@@ -75,7 +79,6 @@ private:
 
     bool bIsAttackKeyPressed = false;
     // 에디터에서 관리되거나 시리얼라이즈 될 필요 없으므로 그냥 bool 자료형 사용가능
-
 
     float AttackRange = 200.f;
 

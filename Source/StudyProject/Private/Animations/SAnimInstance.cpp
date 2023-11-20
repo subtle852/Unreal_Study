@@ -18,6 +18,8 @@ USAnimInstance::USAnimInstance()
     bIsCrouching = false;
 
     bIsDead = false;
+
+    bIsSprint = false;
 }
 
 void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -35,6 +37,7 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
             bIsFalling = CharacterMovementComponent->IsFalling();
             bIsCrouching = CharacterMovementComponent->IsCrouching();
             bIsDead = OwnerCharacter->IsDead();
+            bIsSprint = OwnerCharacter->IsSprint();
         }
     }
 }
