@@ -43,6 +43,10 @@ ASRPGCharacter::ASRPGCharacter()
     ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
     ParticleSystemComponent->SetupAttachment(GetCapsuleComponent());
     ParticleSystemComponent->SetAutoActivate(false);
+
+    ParticleSystemComponentExpEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponentExpEffect"));
+    ParticleSystemComponentExpEffect->SetupAttachment(GetRootComponent());
+    ParticleSystemComponentExpEffect->SetAutoActivate(false);
 }
 
 void ASRPGCharacter::BeginPlay()
@@ -279,4 +283,14 @@ void ASRPGCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
     CurrentComboCount = 0;
     bIsAttackKeyPressed = false;
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+}
+
+void ASRPGCharacter::SetCurrentEXP(float InCurrentEXP)
+{
+    CurrentEXP = FMath::Clamp(CurrentEXP + InCurrentEXP, 0.f, MaxEXP);
+    if (MaxEXP - KINDA_SMALL_NUMBER < CurrentEXP)
+    {
+        CurrentEXP = 0.f;
+        ParticleSystemComponentExpEffect->Activate(true);
+    }
 }
