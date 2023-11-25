@@ -41,10 +41,7 @@ private:
     void OnCharacterDeath();
 
     UFUNCTION()
-    void OnCharacterSprintStarted();
-
-    UFUNCTION()
-    void OnCharacterSprintCompleted();
+    void OnCharacterSprint(bool InSprint);
 
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance")

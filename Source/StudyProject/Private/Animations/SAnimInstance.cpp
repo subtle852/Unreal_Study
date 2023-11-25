@@ -38,13 +38,9 @@ void USAnimInstance::NativeInitializeAnimation()
                 StatComponent->OnOutOfCurrentHPDelegate.AddDynamic(this, &ThisClass::OnCharacterDeath);
             }
 
-            if (false == StatComponent->OnSprintStartedDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterSprintStarted))
+            if (false == StatComponent->OnSprintDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterSprint))
             {
-                StatComponent->OnSprintStartedDelegate.AddDynamic(this, &ThisClass::OnCharacterSprintStarted);
-            }
-            if (false == StatComponent->OnSprintCompletedDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterSprintCompleted))
-            {
-                StatComponent->OnSprintCompletedDelegate.AddDynamic(this, &ThisClass::OnCharacterSprintCompleted);
+                StatComponent->OnSprintDelegate.AddDynamic(this, &ThisClass::OnCharacterSprint);
             }
         }
     }
@@ -105,12 +101,7 @@ void USAnimInstance::OnCharacterDeath()
     bIsDead = true;
 }
 
-void USAnimInstance::OnCharacterSprintStarted()
+void USAnimInstance::OnCharacterSprint(bool InSprint)
 {
-    bIsSprint = true;
-}
-
-void USAnimInstance::OnCharacterSprintCompleted()
-{
-    bIsSprint = false;
+    bIsSprint = InSprint;
 }

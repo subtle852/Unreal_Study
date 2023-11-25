@@ -156,6 +156,9 @@ void ASRPGCharacter::SprintStarted(const FInputActionValue& InValue)
 
 void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
 {
+    if (GetCharacterMovement()->IsFalling() == true)
+        return;
+
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintCompleted")));
 
     StatComponent->SetIsSprint(false);

@@ -56,21 +56,14 @@ void USStatComponent::SetCurrentHP(float InCurrentHP)
 
 void USStatComponent::SetIsSprint(bool InSprint)
 {
-    if (true == InSprint)
+    if (true == OnSprintDelegate.IsBound())
     {
-        if (true == OnSprintStartedDelegate.IsBound())
-        {
-            OnSprintStartedDelegate.Broadcast();
-            bIsSprint = true;
-        }
-    }
-    else
-    {
-        if (true == OnSprintCompletedDelegate.IsBound())
-        {
-            OnSprintCompletedDelegate.Broadcast();
-            bIsSprint = false;
-        }
-    }
+        OnSprintDelegate.Broadcast(InSprint);
 
+        if (true == InSprint)
+            bIsSprint = true;
+
+        else
+            bIsSprint = false;
+    }
 }
