@@ -16,6 +16,7 @@
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Components/SStatComponent.h"
 
 ASRPGCharacter::ASRPGCharacter()
     : bIsAttacking(false)
@@ -82,19 +83,19 @@ float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 {
     float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
-    CurrentHP = FMath::Clamp(CurrentHP - FinalDamageAmount, 0.f, MaxHP);
+    //CurrentHP = FMath::Clamp(CurrentHP - FinalDamageAmount, 0.f, MaxHP);
 
-    if (CurrentHP < KINDA_SMALL_NUMBER)
-    {
-        bIsDead = true;
-        CurrentHP = 0.f;
-        GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-    }
+    //if (CurrentHP < KINDA_SMALL_NUMBER)
+    //{
+    //    bIsDead = true;
+    //    CurrentHP = 0.f;
+    //    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    //    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+    //}
 
     ParticleSystemComponent->Activate(true);
 
-    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), CurrentHP, MaxHP));
+    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), CurrentHP, MaxHP));
 
     return FinalDamageAmount;
 }

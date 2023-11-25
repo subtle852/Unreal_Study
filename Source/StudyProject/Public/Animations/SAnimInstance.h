@@ -24,6 +24,8 @@ class STUDYPROJECT_API USAnimInstance : public UAnimInstance
 public:
     USAnimInstance();
 
+    virtual void NativeInitializeAnimation() override;
+
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 private:
@@ -34,6 +36,9 @@ private:
 
     UFUNCTION()
     void AnimNotify_CheckCanNextCombo();
+
+    UFUNCTION()
+    void OnCharacterDeath();
 
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance")
