@@ -6,6 +6,7 @@
 #include "Game/SGameInstance.h"
 
 USStatComponent::USStatComponent()
+    : bIsSprint(false)
 {
     PrimaryComponentTick.bCanEverTick = false;
     bWantsInitializeComponent = false;
@@ -51,4 +52,25 @@ void USStatComponent::SetCurrentHP(float InCurrentHP)
         OnOutOfCurrentHPDelegate.Broadcast();
         CurrentHP = 0.f;
     }
+}
+
+void USStatComponent::SetIsSprint(bool InSprint)
+{
+    if (true == InSprint)
+    {
+        if (true == OnSprintStartedDelegate.IsBound())
+        {
+            OnSprintStartedDelegate.Broadcast();
+            bIsSprint = true;
+        }
+    }
+    else
+    {
+        if (true == OnSprintCompletedDelegate.IsBound())
+        {
+            OnSprintCompletedDelegate.Broadcast();
+            bIsSprint = false;
+        }
+    }
+
 }

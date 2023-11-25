@@ -37,6 +37,15 @@ void USAnimInstance::NativeInitializeAnimation()
             {
                 StatComponent->OnOutOfCurrentHPDelegate.AddDynamic(this, &ThisClass::OnCharacterDeath);
             }
+
+            if (false == StatComponent->OnSprintStartedDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterSprintStarted))
+            {
+                StatComponent->OnSprintStartedDelegate.AddDynamic(this, &ThisClass::OnCharacterSprintStarted);
+            }
+            if (false == StatComponent->OnSprintCompletedDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterSprintCompleted))
+            {
+                StatComponent->OnSprintCompletedDelegate.AddDynamic(this, &ThisClass::OnCharacterSprintCompleted);
+            }
         }
     }
 }
@@ -56,7 +65,7 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
             bIsFalling = CharacterMovementComponent->IsFalling();
             bIsCrouching = CharacterMovementComponent->IsCrouching();
             //bIsDead = OwnerCharacter->IsDead();
-            bIsSprint = OwnerCharacter->IsSprint();
+            //bIsSprint = OwnerCharacter->IsSprint();
         }
     }
 }
@@ -94,4 +103,14 @@ void USAnimInstance::AnimNotify_CheckCanNextCombo()
 void USAnimInstance::OnCharacterDeath()
 {
     bIsDead = true;
+}
+
+void USAnimInstance::OnCharacterSprintStarted()
+{
+    bIsSprint = true;
+}
+
+void USAnimInstance::OnCharacterSprintCompleted()
+{
+    bIsSprint = false;
 }

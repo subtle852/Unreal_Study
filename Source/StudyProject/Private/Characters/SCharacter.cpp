@@ -39,7 +39,7 @@ ASCharacter::ASCharacter()
 
     StatComponent = CreateDefaultSubobject<USStatComponent>(TEXT("StatComponent"));
 
-    bIsSprint = false;
+    //bIsSprint = false;
 }
 
 void ASCharacter::BeginPlay()

@@ -33,7 +33,7 @@ public:
     UFUNCTION()
     virtual void OnCharacterDeath();
 
-    bool IsSprint() const { return bIsSprint; }
+    /*bool IsSprint() const { return bIsSprint; }*/
 
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess))
@@ -54,8 +54,8 @@ protected:
     //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     //uint8 bIsDead : 1;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
-    uint8 bIsSprint : 1;
+    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    //uint8 bIsSprint : 1;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     float SprintSpeedMultiplier = 1.7f;

@@ -71,6 +71,16 @@ void ASRPGCharacter::BeginPlay()
         AnimInstance->OnCheckHitDelegate.AddDynamic(this, &ThisClass::CheckHit);
         AnimInstance->OnCheckCanNextComboDelegate.AddDynamic(this, &ThisClass::CheckCanNextCombo);
     }
+
+    //if (false == ::IsValid(StatComponent))
+    //{
+    //    return;
+    //}
+
+    //if (false == StatComponent->OnSprintDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterDeath))
+    //{
+    //    StatComponent->OnSprintDelegate.AddDynamic(this, &ThisClass::OnCharacterDeath);
+    //}
 }
 
 void ASRPGCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -139,7 +149,8 @@ void ASRPGCharacter::SprintStarted(const FInputActionValue& InValue)
 
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintStarted")));
 
-    bIsSprint = true;
+    StatComponent->SetIsSprint(true);
+    //bIsSprint = true;
     GetCharacterMovement()->MaxWalkSpeed *= SprintSpeedMultiplier;
 }
 
@@ -147,7 +158,8 @@ void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
 {
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintCompleted")));
 
-    bIsSprint = false;
+    StatComponent->SetIsSprint(false);
+    //bIsSprint = false;
     GetCharacterMovement()->MaxWalkSpeed = 500.f;
 }
 

@@ -40,6 +40,12 @@ private:
     UFUNCTION()
     void OnCharacterDeath();
 
+    UFUNCTION()
+    void OnCharacterSprintStarted();
+
+    UFUNCTION()
+    void OnCharacterSprintCompleted();
+
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance")
     float CurrentSpeed;
