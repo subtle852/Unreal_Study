@@ -82,7 +82,7 @@ void ASRPGCharacter::BeginPlay()
     //    StatComponent->OnSprintDelegate.AddDynamic(this, &ThisClass::OnCharacterDeath);
     //}
 
-    GetWorld()->GetTimerManager().SetTimer(SprintTimerHandle, this, &ThisClass::OnTimer, 1.0f, true);
+    //GetWorld()->GetTimerManager().SetTimer(SprintTimerHandle, this, &ThisClass::OnTimer, 1.0f, true);
     //GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
 }
 
@@ -90,14 +90,19 @@ void ASRPGCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    CharDeltaSeconds = DeltaSeconds;
+    if (true == bIsSprintStarted || true == bIsSprintCompleted)
+    {
+        CharDeltaSeconds = DeltaSeconds;
+
+        //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
+    }
 }
 
-void ASRPGCharacter::OnTimer()
+void ASRPGCharacter::OnSprintTimer()
 {
-    ++TimerCount;
+    SprintTimerCount += 0.25f;
 
-    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Timer Tick: %d"), TimerCount));
+    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Timer Tick: %f"), SprintTimerCount));
 
     //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
 
@@ -120,8 +125,13 @@ void ASRPGCharacter::OnTimer()
             CharDeltaSeconds,
             SprintInterpSpeed);
 
-        if (GetCharacterMovement()->MaxWalkSpeed == BaseWalkSpeed)
+        if (GetCharacterMovement()->MaxWalkSpeed < BaseWalkSpeed + 5.f)
         {
+            GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+
+            GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
+            SprintTimerCount = 0.f;
+
             bIsSprintCompleted = false;
         }
     }
@@ -202,9 +212,11 @@ void ASRPGCharacter::SprintStarted(const FInputActionValue& InValue)
 
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintStarted")));
 
-    StatComponent->SetIsSprint(true);
-
     bIsSprintStarted = true;
+
+    GetWorld()->GetTimerManager().SetTimer(SprintTimerHandle, this, &ThisClass::OnSprintTimer, 0.25f, true);
+
+    StatComponent->SetIsSprint(true);
 }
 
 void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
@@ -214,10 +226,10 @@ void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
 
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintCompleted")));
 
-    StatComponent->SetIsSprint(false);
-
     bIsSprintStarted = false;
     bIsSprintCompleted = true;
+
+    StatComponent->SetIsSprint(false);
 }
 
 void ASRPGCharacter::Look(const FInputActionValue& InValue)

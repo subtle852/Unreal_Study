@@ -21,7 +21,7 @@ public:
 
     virtual void Tick(float DeltaSeconds) override;
 
-    void OnTimer();
+    void OnSprintTimer();
 
     float GetForwardInputValue() const { return ForwardInputValue; }
 
@@ -113,10 +113,10 @@ private:
 
     FTimerHandle SprintTimerHandle;
 
-    int32 TimerCount = 0;
+    float SprintTimerCount = 0.f;
 
     UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     float CharDeltaSeconds;
 
-    float SprintInterpSpeed = 55.f;
+    float SprintInterpSpeed = 50.f;
 };
