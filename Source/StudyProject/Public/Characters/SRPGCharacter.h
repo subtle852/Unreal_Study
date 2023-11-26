@@ -19,6 +19,10 @@ public:
 
     virtual void BeginPlay() override;
 
+    virtual void Tick(float DeltaSeconds) override;
+
+    void OnTimer();
+
     float GetForwardInputValue() const { return ForwardInputValue; }
 
     float GetRightInputValue() const { return RightInputValue; }
@@ -77,6 +81,9 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", meta = (AllowPrivateAccess))
     TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UParticleSystemComponent> ParticleSystemComponentExpEffect;
+
     uint8 bIsAttacking : 1;
 
     FString AttackAnimMontageSectionName = FString(TEXT("Attack"));
@@ -92,12 +99,24 @@ private:
 
     float AttackRadius = 50.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
-    TObjectPtr<class UParticleSystemComponent> ParticleSystemComponentExpEffect;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     float MaxEXP = 10;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     float CurrentEXP = 0;
+
+
+    bool bIsSprintStarted = false;
+
+    bool bIsSprintCompleted = false;
+
+    FTimerHandle SprintTimerHandle;
+
+    int32 TimerCount = 0;
+
+    UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    float CharDeltaSeconds;
+
+    float SprintInterpSpeed = 55.f;
 };

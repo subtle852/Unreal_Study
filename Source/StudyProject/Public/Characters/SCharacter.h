@@ -58,6 +58,9 @@ protected:
     //uint8 bIsSprint : 1;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
-    float SprintSpeedMultiplier = 1.7f;
+    float BaseWalkSpeed = 400.f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    float BaseSprintSpeed = 850.f;
 
 };

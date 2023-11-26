@@ -21,7 +21,7 @@
 ASRPGCharacter::ASRPGCharacter()
     : bIsAttacking(false)
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 
     CameraComponent->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 
@@ -80,6 +80,59 @@ void ASRPGCharacter::BeginPlay()
     //if (false == StatComponent->OnSprintDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterDeath))
     //{
     //    StatComponent->OnSprintDelegate.AddDynamic(this, &ThisClass::OnCharacterDeath);
+    //}
+
+    GetWorld()->GetTimerManager().SetTimer(SprintTimerHandle, this, &ThisClass::OnTimer, 1.0f, true);
+    //GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
+}
+
+void ASRPGCharacter::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    CharDeltaSeconds = DeltaSeconds;
+}
+
+void ASRPGCharacter::OnTimer()
+{
+    ++TimerCount;
+
+    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Timer Tick: %d"), TimerCount));
+
+    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
+
+    if (true == bIsSprintStarted)
+    {
+        bIsSprintCompleted = false;
+
+        GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
+            GetCharacterMovement()->MaxWalkSpeed,
+            BaseSprintSpeed,
+            CharDeltaSeconds,
+            SprintInterpSpeed);
+    }
+
+    if (true == bIsSprintCompleted)
+    {
+        GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
+            GetCharacterMovement()->MaxWalkSpeed,
+            BaseWalkSpeed,
+            CharDeltaSeconds,
+            SprintInterpSpeed);
+
+        if (GetCharacterMovement()->MaxWalkSpeed == BaseWalkSpeed)
+        {
+            bIsSprintCompleted = false;
+        }
+    }
+
+    // Are we done counting?
+    //if (TimerCount >= 10)
+    //{
+    //    // Clear the timer handle so it won't keep triggering events
+    //    GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
+
+    //    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Clearing the timer.")));
     //}
 }
 
@@ -150,8 +203,8 @@ void ASRPGCharacter::SprintStarted(const FInputActionValue& InValue)
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintStarted")));
 
     StatComponent->SetIsSprint(true);
-    //bIsSprint = true;
-    GetCharacterMovement()->MaxWalkSpeed *= SprintSpeedMultiplier;
+
+    bIsSprintStarted = true;
 }
 
 void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
@@ -162,8 +215,9 @@ void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintCompleted")));
 
     StatComponent->SetIsSprint(false);
-    //bIsSprint = false;
-    GetCharacterMovement()->MaxWalkSpeed = 500.f;
+
+    bIsSprintStarted = false;
+    bIsSprintCompleted = true;
 }
 
 void ASRPGCharacter::Look(const FInputActionValue& InValue)
