@@ -10,6 +10,11 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SStatComponent.h"
 
+#include "Components/SWidgetComponent.h"
+#include "UI/StudyUserWidget.h"
+#include "UI/SW_HPBar.h"
+
+
 ASNonPlayerCharacter::ASNonPlayerCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -17,6 +22,13 @@ ASNonPlayerCharacter::ASNonPlayerCharacter()
     AIControllerClass = ASAIController::StaticClass();
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
     // ASNonPlayerCharacter는 레벨에 배치되거나 새롭게 생성되면 SAIController의 빙의가 자동으로 진행됨.
+
+    WidgetComponent = CreateDefaultSubobject<USWidgetComponent>(TEXT("WidgetComponent"));
+    WidgetComponent->SetupAttachment(GetRootComponent());
+    WidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
+    WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+    WidgetComponent->SetDrawSize(FVector2D(300.0f, 100.0f));
+    WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ASNonPlayerCharacter::BeginPlay()
@@ -83,6 +95,17 @@ float ASNonPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageE
     }
 
     return FinalDamageAmount;
+}
+
+void ASNonPlayerCharacter::SetWidget(UStudyUserWidget* InStudyUserWidget)
+{
+    USW_HPBar* HPBarWidget = Cast<USW_HPBar>(InStudyUserWidget);
+    if (true == ::IsValid(HPBarWidget))
+    {
+        HPBarWidget->SetMaxHP(StatComponent->GetMaxHP());
+        HPBarWidget->InitializeHPBarWidget(StatComponent);
+        StatComponent->OnCurrentHPChangeDelegate.AddDynamic(HPBarWidget, &USW_HPBar::OnCurrentHPChange);
+    }
 }
 
 void ASNonPlayerCharacter::Attack()
