@@ -4,6 +4,9 @@
 #include "Components/SStatComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Game/SGameInstance.h"
+#include "Characters/SRPGCharacter.h"
+#include "Game/SPlayerState.h"
+
 
 USStatComponent::USStatComponent()
     : bIsSprint(false)
@@ -24,6 +27,19 @@ void USStatComponent::BeginPlay()
             float NewMaxHP = GameInstance->GetCharacterStatDataTableRow(1)->MaxHP;
             SetMaxHP(NewMaxHP);
             SetCurrentHP(MaxHP);
+        }
+    }
+
+    ASRPGCharacter* OwnerPlayerCharacter = Cast<ASRPGCharacter>(GetOwner());
+    if (true == ::IsValid(OwnerPlayerCharacter))
+    {
+        ASPlayerState* PS = Cast<ASPlayerState>(OwnerPlayerCharacter->GetPlayerState());
+        if (true == ::IsValid(PS))
+        {
+            if (false == PS->OnCurrentLevelChangedDelegate.IsAlreadyBound(this, &ThisClass::OnCurrentLevelChanged))
+            {
+                PS->OnCurrentLevelChangedDelegate.AddDynamic(this, &ThisClass::OnCurrentLevelChanged);
+            }
         }
     }
 }
@@ -66,4 +82,10 @@ void USStatComponent::SetIsSprint(bool InSprint)
         else
             bIsSprint = false;
     }
+}
+
+void USStatComponent::OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel)
+{
+    SetMaxHP(GameInstance->GetCharacterStatDataTableRow(InNewCurrentLevel)->MaxHP);
+    SetCurrentHP(GameInstance->GetCharacterStatDataTableRow(InNewCurrentLevel)->MaxHP);
 }

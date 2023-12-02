@@ -33,6 +33,10 @@ public:
 
     void SetIsSprint(bool InSprint);
 
+private:
+    UFUNCTION()
+    void OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel);
+
 public:
     FOnOutOfCurrentHPDelegate OnOutOfCurrentHPDelegate;
 

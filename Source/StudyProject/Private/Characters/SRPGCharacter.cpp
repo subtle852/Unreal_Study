@@ -17,6 +17,7 @@
 #include "Engine/DamageEvents.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/SStatComponent.h"
+#include "Game/SPlayerState.h"
 
 ASRPGCharacter::ASRPGCharacter()
     : bIsAttacking(false)
@@ -70,6 +71,15 @@ void ASRPGCharacter::BeginPlay()
         AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackMontageEnded);
         AnimInstance->OnCheckHitDelegate.AddDynamic(this, &ThisClass::CheckHit);
         AnimInstance->OnCheckCanNextComboDelegate.AddDynamic(this, &ThisClass::CheckCanNextCombo);
+    }
+
+    ASPlayerState* PS = GetPlayerState<ASPlayerState>();
+    if (true == ::IsValid(PS))
+    {
+        if (false == PS->OnCurrentLevelChangedDelegate.IsAlreadyBound(this, &ThisClass::OnCurrentLevelChanged))
+        {
+            PS->OnCurrentLevelChangedDelegate.AddDynamic(this, &ThisClass::OnCurrentLevelChanged);
+        }
     }
 
     //if (false == ::IsValid(StatComponent))
@@ -367,12 +377,8 @@ void ASRPGCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
-void ASRPGCharacter::SetCurrentEXP(float InCurrentEXP)
+void ASRPGCharacter::OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel)
 {
-    CurrentEXP = FMath::Clamp(CurrentEXP + InCurrentEXP, 0.f, MaxEXP);
-    if (MaxEXP - KINDA_SMALL_NUMBER < CurrentEXP)
-    {
-        CurrentEXP = 0.f;
-        ParticleSystemComponentExpEffect->Activate(true);
-    }
+    ParticleSystemComponentExpEffect->Activate(true);
 }
+

@@ -9,6 +9,7 @@
 #include "Characters/SRPGCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SStatComponent.h"
+#include "Game/SPlayerState.h"
 
 #include "Components/SWidgetComponent.h"
 #include "UI/StudyUserWidget.h"
@@ -77,20 +78,38 @@ float ASNonPlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageE
     //    }
     //}
 
-    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s CurrentHP : %f"), *GetName(), CurrentHP));
-
     if (StatComponent->GetCurrentHP() < KINDA_SMALL_NUMBER)
     {
-        ASRPGCharacter* DamageCauserCharacter = Cast<ASRPGCharacter>(DamageCauser);
-        if (true == ::IsValid(DamageCauserCharacter))
+        if (true == ::IsValid(LastHitBy))
         {
-            DamageCauserCharacter->SetCurrentEXP(DamageCauserCharacter->GetCurrentEXP() + 5);
+            ASRPGCharacter* DamageCauserCharacter = Cast<ASRPGCharacter>(LastHitBy->GetPawn());
+            if (true == ::IsValid(DamageCauserCharacter))
+            {
+                ASPlayerState* PS = Cast<ASPlayerState>(DamageCauserCharacter->GetPlayerState());
+                if (true == ::IsValid(PS))
+                {
+                    PS->SetCurrentEXP(PS->GetCurrentEXP() + 20.f);
+                }
+            }
         }
 
         ASAIController* AIController = Cast<ASAIController>(GetController());
         if (true == ::IsValid(AIController))
         {
             AIController->EndAI();
+        }
+    }
+
+    if (true == ::IsValid(LastHitBy))
+    {
+        ASRPGCharacter* DamageCauserCharacter = Cast<ASRPGCharacter>(LastHitBy->GetPawn());
+        if (true == ::IsValid(DamageCauserCharacter))
+        {
+            ASPlayerState* PS = Cast<ASPlayerState>(DamageCauserCharacter->GetPlayerState());
+            if (true == ::IsValid(PS))
+            {
+                UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s CurrentEXP : %f"), *GetName(), PS->GetCurrentEXP()));
+            }
         }
     }
 
