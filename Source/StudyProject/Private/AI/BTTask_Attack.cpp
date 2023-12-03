@@ -4,6 +4,7 @@
 #include "AI/BTTask_Attack.h"
 #include "Controllers/SAIController.h"
 #include "Characters/SNonPlayerCharacter.h"
+#include "Characters/STestCharacter.h"
 
 UBTTask_Attack::UBTTask_Attack()
 {
@@ -17,7 +18,7 @@ void UBTTask_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
     ASAIController* AIC = Cast<ASAIController>(OwnerComp.GetAIOwner());
     if (true == ::IsValid(AIC))
     {
-        ASNonPlayerCharacter* NPC = Cast<ASNonPlayerCharacter>(AIC->GetPawn());
+        ASTestCharacter* NPC = Cast<ASTestCharacter>(AIC->GetPawn());
         if (true == ::IsValid(NPC))
         {
             if (false == NPC->IsNowAttacking())
@@ -35,7 +36,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
     ASAIController* AIC = Cast<ASAIController>(OwnerComp.GetAIOwner());
     if (true == ::IsValid(AIC))
     {
-        ASNonPlayerCharacter* NPC = Cast<ASNonPlayerCharacter>(AIC->GetPawn());
+        ASTestCharacter* NPC = Cast<ASTestCharacter>(AIC->GetPawn());
         if (true == ::IsValid(NPC))
         {
             NPC->Attack();

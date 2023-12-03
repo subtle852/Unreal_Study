@@ -1,7 +1,7 @@
-// SRPGCharacter.cpp
+// SWKCharacter.cpp
 
 
-#include "Characters/SRPGCharacter.h"
+#include "Characters/SWKCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -18,37 +18,41 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/SStatComponent.h"
 #include "Game/SPlayerState.h"
+#include "Characters/SRPGCharacter.h"
 
-ASRPGCharacter::ASRPGCharacter()
-    : bIsAttacking(false)
+ASWKCharacter::ASWKCharacter()
+    //: bIsAttacking(false)
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    CameraComponent->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
+    //CameraComponent->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 
-    bUseControllerRotationPitch = false;
-    bUseControllerRotationYaw = false;
-    bUseControllerRotationRoll = false;
+    //bUseControllerRotationPitch = false;
+    //bUseControllerRotationYaw = false;
+    //bUseControllerRotationRoll = false;
 
-    SpringArmComponent->bUsePawnControlRotation = true;
-    SpringArmComponent->bDoCollisionTest = true;
-    SpringArmComponent->bInheritPitch = true;
-    SpringArmComponent->bInheritYaw = true;
-    SpringArmComponent->bInheritRoll = false;
+    //SpringArmComponent->bUsePawnControlRotation = true;
+    //SpringArmComponent->bDoCollisionTest = true;
+    //SpringArmComponent->bInheritPitch = true;
+    //SpringArmComponent->bInheritYaw = true;
+    //SpringArmComponent->bInheritRoll = false;
 
-    GetCharacterMovement()->bOrientRotationToMovement = true;
-    GetCharacterMovement()->bUseControllerDesiredRotation = false;
-    GetCharacterMovement()->RotationRate = FRotator(0.f, 480.f, 0.f);
+    //GetCharacterMovement()->bOrientRotationToMovement = true;
+    //GetCharacterMovement()->bUseControllerDesiredRotation = false;
+    //GetCharacterMovement()->RotationRate = FRotator(0.f, 480.f, 0.f);
 
-    GetCapsuleComponent()->SetCollisionProfileName(TEXT("SCharacter"));
+    //GetCapsuleComponent()->SetCollisionProfileName(TEXT("SCharacter"));
 
-    ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
-    ParticleSystemComponent->SetupAttachment(GetCapsuleComponent());
-    ParticleSystemComponent->SetAutoActivate(false);
+    //ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
+    //ParticleSystemComponent->SetupAttachment(GetCapsuleComponent());
+    //ParticleSystemComponent->SetAutoActivate(false);
 
+    //ParticleSystemComponentExpEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponentExpEffect"));
+    //ParticleSystemComponentExpEffect->SetupAttachment(GetRootComponent());
+    //ParticleSystemComponentExpEffect->SetAutoActivate(false);
 }
 
-void ASRPGCharacter::BeginPlay()
+void ASWKCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
@@ -65,9 +69,9 @@ void ASRPGCharacter::BeginPlay()
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (true == ::IsValid(AnimInstance))
     {
-        AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackMontageEnded);
-        AnimInstance->OnCheckHitDelegate.AddDynamic(this, &ThisClass::CheckHit);
-        AnimInstance->OnCheckCanNextComboDelegate.AddDynamic(this, &ThisClass::CheckCanNextCombo);
+        //AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackMontageEnded);
+        //AnimInstance->OnCheckHitDelegate.AddDynamic(this, &ThisClass::CheckHit);
+        //AnimInstance->OnCheckCanNextComboDelegate.AddDynamic(this, &ThisClass::CheckCanNextCombo);
     }
 
     ASPlayerState* PS = GetPlayerState<ASPlayerState>();
@@ -93,7 +97,7 @@ void ASRPGCharacter::BeginPlay()
     //GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
 }
 
-void ASRPGCharacter::Tick(float DeltaSeconds)
+void ASWKCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
@@ -105,7 +109,7 @@ void ASRPGCharacter::Tick(float DeltaSeconds)
     }
 }
 
-void ASRPGCharacter::OnSprintTimer()
+void ASWKCharacter::OnSprintTimer()
 {
     SprintTimerCount += 0.25f;
 
@@ -153,13 +157,13 @@ void ASRPGCharacter::OnSprintTimer()
     //}
 }
 
-void ASRPGCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void ASWKCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
     bIsAttacking = false;
 }
 
-float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+float ASWKCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
     float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
@@ -173,28 +177,30 @@ float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
     //    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
     //}
 
+    ParticleSystemComponent->Activate(true);
+
     //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), CurrentHP, MaxHP));
 
     return FinalDamageAmount;
 }
 
-void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ASWKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-    if (true == ::IsValid(EnhancedInputComponent))
-    {
-        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
-        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintStartedAction, ETriggerEvent::Started, this, &ThisClass::SprintStarted);
-        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintCompletedAction, ETriggerEvent::Completed, this, &ThisClass::SprintCompleted);
-        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
-        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
-    }
+    //UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+    //if (true == ::IsValid(EnhancedInputComponent))
+    //{
+    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
+    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintStartedAction, ETriggerEvent::Started, this, &ThisClass::SprintStarted);
+    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintCompletedAction, ETriggerEvent::Completed, this, &ThisClass::SprintCompleted);
+    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
+    //}
 }
 
-void ASRPGCharacter::Move(const FInputActionValue& InValue)
+void ASWKCharacter::Move(const FInputActionValue& InValue)
 {
     FVector2D MovementVector = InValue.Get<FVector2D>();
     ForwardInputValue = MovementVector.X;
@@ -210,7 +216,7 @@ void ASRPGCharacter::Move(const FInputActionValue& InValue)
     AddMovementInput(RightDirection, MovementVector.Y);
 }
 
-void ASRPGCharacter::SprintStarted(const FInputActionValue& InValue)
+void ASWKCharacter::SprintStarted(const FInputActionValue& InValue)
 {
     if (GetCharacterMovement()->IsFalling() == true)
         return;
@@ -224,7 +230,7 @@ void ASRPGCharacter::SprintStarted(const FInputActionValue& InValue)
     StatComponent->SetIsSprint(true);
 }
 
-void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
+void ASWKCharacter::SprintCompleted(const FInputActionValue& InValue)
 {
     //if (GetCharacterMovement()->IsFalling() == true)
     //    return;
@@ -237,7 +243,7 @@ void ASRPGCharacter::SprintCompleted(const FInputActionValue& InValue)
     StatComponent->SetIsSprint(false);
 }
 
-void ASRPGCharacter::Look(const FInputActionValue& InValue)
+void ASWKCharacter::Look(const FInputActionValue& InValue)
 {
     FVector2D LookAxisVector = InValue.Get<FVector2D>();
 
@@ -245,9 +251,9 @@ void ASRPGCharacter::Look(const FInputActionValue& InValue)
     AddControllerPitchInput(LookAxisVector.Y);
 }
 
-void ASRPGCharacter::Attack(const FInputActionValue& InValue)
+void ASWKCharacter::Attack(const FInputActionValue& InValue)
 {
-   //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
+    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
 
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (false == ::IsValid(AnimInstance))
@@ -259,7 +265,7 @@ void ASRPGCharacter::Attack(const FInputActionValue& InValue)
     {
         return;
     }
-    
+
     if (0 == CurrentComboCount)
     {
         BeginCombo();
@@ -272,7 +278,7 @@ void ASRPGCharacter::Attack(const FInputActionValue& InValue)
     }
 }
 
-void ASRPGCharacter::CheckHit()
+void ASWKCharacter::CheckHit()
 {
     FHitResult HitResult;
     FCollisionQueryParams Params(NAME_None, false, this);
@@ -287,13 +293,13 @@ void ASRPGCharacter::CheckHit()
         Params
     );
 
-	//bool bResult = GetWorld()->LineTraceSingleByChannel(
-	//	HitResult,
-	//	GetActorLocation(),
-	//	GetActorLocation() + AttackRange,
-	//	ECollisionChannel::ECC_EngineTraceChannel2,
+    //bool bResult = GetWorld()->LineTraceSingleByChannel(
+    //	HitResult,
+    //	GetActorLocation(),
+    //	GetActorLocation() + AttackRange,
+    //	ECollisionChannel::ECC_EngineTraceChannel2,
     //  Params
-	//);
+    //);
 
     if (true == bResult)
     {
@@ -327,7 +333,7 @@ void ASRPGCharacter::CheckHit()
 #pragma endregion
 }
 
-void ASRPGCharacter::BeginCombo()
+void ASWKCharacter::BeginCombo()
 {
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (false == ::IsValid(AnimInstance))
@@ -346,7 +352,7 @@ void ASRPGCharacter::BeginCombo()
     AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackAnimMontage);
 }
 
-void ASRPGCharacter::CheckCanNextCombo()
+void ASWKCharacter::CheckCanNextCombo()
 {
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (false == ::IsValid(AnimInstance))
@@ -364,7 +370,7 @@ void ASRPGCharacter::CheckCanNextCombo()
     }
 }
 
-void ASRPGCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
+void ASWKCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
 {
     ensure(0 != CurrentComboCount);
     CurrentComboCount = 0;
@@ -372,7 +378,7 @@ void ASRPGCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
-void ASRPGCharacter::OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel)
+void ASWKCharacter::OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel)
 {
     ParticleSystemComponent->Activate(true);
 }

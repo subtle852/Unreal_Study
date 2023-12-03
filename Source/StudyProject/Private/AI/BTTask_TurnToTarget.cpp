@@ -4,6 +4,7 @@
 #include "AI/BTTask_TurnToTarget.h"
 #include "Controllers/SAIController.h"
 #include "Characters/SNonPlayerCharacter.h"
+#include "Characters/STestCharacter.h"
 #include "Characters/SCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -19,7 +20,7 @@ EBTNodeResult::Type UBTTask_TurnToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
     ASAIController* AIC = Cast<ASAIController>(OwnerComp.GetAIOwner());
     if (true == ::IsValid(AIC))
     {
-        ASNonPlayerCharacter* NPC = Cast<ASNonPlayerCharacter>(AIC->GetPawn());
+        ASTestCharacter* NPC = Cast<ASTestCharacter>(AIC->GetPawn());
         if (true == ::IsValid(NPC))
         {
             if (ASCharacter* TargetPC = Cast<ASCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AIC->TargetActorKey)))

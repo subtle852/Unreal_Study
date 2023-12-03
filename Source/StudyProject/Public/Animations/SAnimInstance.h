@@ -20,6 +20,9 @@ class STUDYPROJECT_API USAnimInstance : public UAnimInstance
 
     friend class ASRPGCharacter;
     friend class ASNonPlayerCharacter;
+    friend class ASTestCharacter;
+
+    friend class ASWKCharacter;
 
 public:
     USAnimInstance();

@@ -4,6 +4,7 @@
 #include "AI/BTService_DetectPlayerCharacter.h"
 #include "Controllers/SAIController.h"
 #include "Characters/SNonPlayerCharacter.h"
+#include "Characters/STestCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Characters/SCharacter.h"
@@ -21,7 +22,7 @@ void UBTService_DetectPlayerCharacter::TickNode(UBehaviorTreeComponent& OwnerCom
     ASAIController* AIC = Cast<ASAIController>(OwnerComp.GetAIOwner());
     if (true == ::IsValid(AIC))
     {
-        ASNonPlayerCharacter* NPC = Cast<ASNonPlayerCharacter>(AIC->GetPawn());
+        ASTestCharacter* NPC = Cast<ASTestCharacter>(AIC->GetPawn());
         if (true == ::IsValid(NPC))
         {
             UWorld* World = NPC->GetWorld();

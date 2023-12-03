@@ -5,6 +5,7 @@
 #include "Controllers/SAIController.h"
 #include "Characters/SNonPlayerCharacter.h"
 #include "Characters/SCharacter.h"
+#include "Characters/STestCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 const float UBTDecorator_IsInAttackRange::AttackRange(200.f);
@@ -21,7 +22,7 @@ bool UBTDecorator_IsInAttackRange::CalculateRawConditionValue(UBehaviorTreeCompo
     ASAIController* AIC = Cast<ASAIController>(OwnerComp.GetAIOwner());
     if (true == ::IsValid(AIC))
     {
-        ASNonPlayerCharacter* NPC = Cast<ASNonPlayerCharacter>(AIC->GetPawn());
+        ASTestCharacter* NPC = Cast<ASTestCharacter>(AIC->GetPawn());
         if (true == ::IsValid(NPC))
         {
             ASCharacter* TargetPlayerCharacter = Cast<ASCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(ASAIController::TargetActorKey));

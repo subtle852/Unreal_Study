@@ -4,6 +4,7 @@
 #include "AI/BTTask_GetEndPatrolPosition.h"
 #include "Controllers/SAIController.h"
 #include "Characters/SNonPlayerCharacter.h"
+#include "Characters/STestCharacter.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -27,7 +28,7 @@ EBTNodeResult::Type UBTTask_GetEndPatrolPosition::ExecuteTask(UBehaviorTreeCompo
         return Result = EBTNodeResult::Failed;
     }
 
-    ASNonPlayerCharacter* NPC = Cast<ASNonPlayerCharacter>(AIController->GetPawn());
+    ASTestCharacter* NPC = Cast<ASTestCharacter>(AIController->GetPawn());
     if (false == ::IsValid(NPC))
     {
         return Result = EBTNodeResult::Failed;
