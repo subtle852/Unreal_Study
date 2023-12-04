@@ -42,7 +42,7 @@ EBTNodeResult::Type UBTTask_GetEndPatrolPosition::ExecuteTask(UBehaviorTreeCompo
 
     FVector StartPatrolPosition = OwnerComp.GetBlackboardComponent()->GetValueAsVector(ASAIController::StartPatrolPositionKey);
     FNavLocation EndPatrolLocation;
-    if (true == NS->GetRandomPointInNavigableRadius(FVector::ZeroVector, AIController->PatrolRadius, EndPatrolLocation))
+    if (true == NS->GetRandomReachablePointInRadius(FVector::ZeroVector, AIController->PatrolRadius, EndPatrolLocation))
     {
         OwnerComp.GetBlackboardComponent()->SetValueAsVector(ASAIController::EndPatrolPositionKey, EndPatrolLocation.Location);
         return Result = EBTNodeResult::Succeeded;

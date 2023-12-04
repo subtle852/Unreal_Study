@@ -32,13 +32,19 @@ public:
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 private:
-    void PlayAttackAnimMontage();
+    void PlayAttackBasicAnimMontage();
 
     UFUNCTION()
     void AnimNotify_CheckHit();
 
     UFUNCTION()
     void AnimNotify_CheckCanNextCombo();
+
+    void PlayAttackSkillAAnimMontage();
+
+    void PlayAttackSkillBAnimMontage();
+
+    void PlayAttackSuperAnimMontage();
 
     UFUNCTION()
     void OnCharacterDeath();
@@ -53,22 +59,34 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance")
     FVector Velocity;
 
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    uint8 bIsDead : 1;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance")
     uint8 bIsFalling : 1;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance")
     uint8 bIsCrouching : 1;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    uint8 bIsSprint : 1;
+
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
-    TObjectPtr<class UAnimMontage> AttackAnimMontage;
+    TObjectPtr<class UAnimMontage> AttackBasicAnimMontage;
 
     FOnCheckHitDelegate OnCheckHitDelegate;
 
     FOnCheckCanNextComboDelegate OnCheckCanNextComboDelegate;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
-    uint8 bIsDead : 1;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> AttackSkillAAnimMontage;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
-    uint8 bIsSprint : 1;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> AttackSkillBAnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> AttackSuperAnimMontage;
+
 };

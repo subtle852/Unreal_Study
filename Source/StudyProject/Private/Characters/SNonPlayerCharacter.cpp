@@ -153,7 +153,7 @@ void ASNonPlayerCharacter::Attack()
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (true == ::IsValid(AnimInstance))
     {
-        AnimInstance->PlayAttackAnimMontage();
+        AnimInstance->PlayAttackBasicAnimMontage();
         bIsAttacking = true;
         if (false == AnimInstance->OnMontageEnded.IsAlreadyBound(this, &ThisClass::OnAttackAnimMontageEnded))
         {

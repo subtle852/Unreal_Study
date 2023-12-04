@@ -16,6 +16,9 @@ class STUDYPROJECT_API USInputConfigData : public UDataAsset
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<class UInputAction> ZoomAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<class UInputAction> MoveAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -34,6 +37,18 @@ public:
     TObjectPtr<class UInputAction> JumpAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    TObjectPtr<class UInputAction> AttackAction;
+    TObjectPtr<class UInputAction> AttackBasicAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UInputAction> AttackSkillAAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UInputAction> AttackSkillBAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UInputAction> AttackSuperAction;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	//TObjectPtr<class UInputAction> AttackAction;
 
 };

@@ -103,6 +103,12 @@ void ASRPGCharacter::Tick(float DeltaSeconds)
 
         //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
     }
+
+    ////ÁÜ ¼±Çüº¸°£
+    //if (FMath::Abs(SpringArmComponent->TargetArmLength - ExpectedSpringArmLength) > KINDA_SMALL_NUMBER)
+    //{
+    //    SpringArmComponent->TargetArmLength = FMath::Lerp(SpringArmComponent->TargetArmLength, ExpectedSpringArmLength, 0.05f);
+    //}
 }
 
 void ASRPGCharacter::OnSprintTimer()
@@ -185,12 +191,34 @@ void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
     if (true == ::IsValid(EnhancedInputComponent))
     {
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->ZoomAction, ETriggerEvent::Triggered, this, &ThisClass::Zoom);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintStartedAction, ETriggerEvent::Started, this, &ThisClass::SprintStarted);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintCompletedAction, ETriggerEvent::Completed, this, &ThisClass::SprintCompleted);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackBasicAction, ETriggerEvent::Started, this, &ThisClass::AttackBasic);
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackSkillAAction, ETriggerEvent::Started, this, &ThisClass::AttackSkillA);
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackSkillBAction, ETriggerEvent::Started, this, &ThisClass::AttackSkillB);
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackSuperAction, ETriggerEvent::Started, this, &ThisClass::AttackSuper);
+    }
+}
+
+void ASRPGCharacter::Zoom(const FInputActionValue& InValue)
+{
+    FVector2D ZoomVector = InValue.Get<FVector2D>();
+    float InputValue = ZoomVector.X;
+
+    if (InputValue >= KINDA_SMALL_NUMBER)
+    {
+        //ExpectedSpringArmLength = FMath::Clamp<float>(ExpectedSpringArmLength + 30.0f, 200, 900);
+        SpringArmComponent->TargetArmLength = FMath::Clamp<float>(SpringArmComponent->TargetArmLength + 30.0f, 200.0f, 900.0f);
+    }
+
+    else
+    {
+        //ExpectedSpringArmLength = FMath::Clamp<float>(ExpectedSpringArmLength - 30.0f, 200, 900);
+        SpringArmComponent->TargetArmLength = FMath::Clamp<float>(SpringArmComponent->TargetArmLength - 30.0f, 200.0f, 900.0f);
     }
 }
 
@@ -245,7 +273,7 @@ void ASRPGCharacter::Look(const FInputActionValue& InValue)
     AddControllerPitchInput(LookAxisVector.Y);
 }
 
-void ASRPGCharacter::Attack(const FInputActionValue& InValue)
+void ASRPGCharacter::AttackBasic(const FInputActionValue& InValue)
 {
    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
 
@@ -270,6 +298,64 @@ void ASRPGCharacter::Attack(const FInputActionValue& InValue)
         ensure(FMath::IsWithinInclusive<int32>(CurrentComboCount, 1, MaxComboCount));
         bIsAttackKeyPressed = true;
     }
+}
+
+void ASRPGCharacter::AttackSkillA(const FInputActionValue& InValue)
+{
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (false == ::IsValid(AnimInstance))
+    {
+        return;
+    }
+
+    if (true == AnimInstance->bIsFalling)
+    {
+        return;
+    }
+
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+    AnimInstance->PlayAttackSkillAAnimMontage();
+
+    //FOnMontageEnded OnMontageEndedDelegate;
+    //OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackBasicAnimMontage);
+}
+
+void ASRPGCharacter::AttackSkillB(const FInputActionValue& InValue)
+{
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (false == ::IsValid(AnimInstance))
+    {
+        return;
+    }
+
+    if (true == AnimInstance->bIsFalling)
+    {
+        return;
+    }
+
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+    AnimInstance->PlayAttackSkillBAnimMontage();
+}
+
+void ASRPGCharacter::AttackSuper(const FInputActionValue& InValue)
+{
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (false == ::IsValid(AnimInstance))
+    {
+        return;
+    }
+
+    if (true == AnimInstance->bIsFalling)
+    {
+        return;
+    }
+
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+    AnimInstance->PlayAttackSuperAnimMontage();
 }
 
 void ASRPGCharacter::CheckHit()
@@ -339,11 +425,11 @@ void ASRPGCharacter::BeginCombo()
 
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
-    AnimInstance->PlayAttackAnimMontage();
+    AnimInstance->PlayAttackBasicAnimMontage();
 
     FOnMontageEnded OnMontageEndedDelegate;
     OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
-    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackAnimMontage);
+    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackBasicAnimMontage);
 }
 
 void ASRPGCharacter::CheckCanNextCombo()
@@ -359,7 +445,7 @@ void ASRPGCharacter::CheckCanNextCombo()
         CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 1, MaxComboCount);
 
         FName NextSectionName = *FString::Printf(TEXT("%s%d"), *AttackAnimMontageSectionName, CurrentComboCount);
-        AnimInstance->Montage_JumpToSection(NextSectionName, AnimInstance->AttackAnimMontage);
+        AnimInstance->Montage_JumpToSection(NextSectionName, AnimInstance->AttackBasicAnimMontage);
         bIsAttackKeyPressed = false;
     }
 }

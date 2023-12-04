@@ -15,7 +15,7 @@ ASCharacter::ASCharacter()
 
     float CharacterHalfHeight = 95.f;
     float CharacterRadius = 40.f;
-
+    
     GetCapsuleComponent()->InitCapsuleSize(CharacterRadius, CharacterHalfHeight);
 
     FVector PivotPosition(0.f, 0.f, -CharacterHalfHeight);

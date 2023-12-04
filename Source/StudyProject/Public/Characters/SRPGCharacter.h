@@ -39,6 +39,8 @@ public:
 protected:
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+    virtual void Zoom(const FInputActionValue& InValue);
+
     virtual void Move(const FInputActionValue& InValue);
 
     virtual void SprintStarted(const FInputActionValue& InValue);
@@ -47,7 +49,13 @@ protected:
 
     virtual void Look(const FInputActionValue& InValue);
 
-    virtual void Attack(const FInputActionValue& InValue);
+    virtual void AttackBasic(const FInputActionValue& InValue);
+
+    virtual void AttackSkillA(const FInputActionValue& InValue);
+
+    virtual void AttackSkillB(const FInputActionValue& InValue);
+
+    virtual void AttackSuper(const FInputActionValue& InValue);
 
 
     UFUNCTION()
@@ -66,6 +74,7 @@ protected:
 
 
 protected:
+    // Input
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     TObjectPtr<class USInputConfigData> PlayerCharacterInputConfigData;
 
@@ -78,21 +87,24 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess = true))
     float RightInputValue;
 
-
+    // Component
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", meta = (AllowPrivateAccess))
     TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
+
+    // Zoom
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess = true))
+    float ExpectedSpringArmLength = 400.0f;
 
     // Attack
     uint8 bIsAttacking : 1;
 
-    FString AttackAnimMontageSectionName = FString(TEXT("Attack"));
+    FString AttackAnimMontageSectionName = FString(TEXT("AttackBasic"));
 
     int32 MaxComboCount = 3;
 
     int32 CurrentComboCount = 0;
 
-    bool bIsAttackKeyPressed = false;
-    // 에디터에서 관리되거나 시리얼라이즈 될 필요 없으므로 그냥 bool 자료형 사용가능
+    bool bIsAttackKeyPressed = false;// 에디터에서 관리되거나 시리얼라이즈 될 필요 없으므로 그냥 bool 자료형 사용가능
 
     float AttackRange = 200.f;
 

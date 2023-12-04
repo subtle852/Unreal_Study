@@ -66,15 +66,18 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     }
 }
 
-void USAnimInstance::PlayAttackAnimMontage()
+void USAnimInstance::PlayAttackBasicAnimMontage()
 {
     if (bIsFalling == false) 
     {
-        if (true == ::IsValid(AttackAnimMontage))
+        if (true == ::IsValid(AttackBasicAnimMontage))
         {
-            if (false == Montage_IsPlaying(AttackAnimMontage))
+            if (false == Montage_IsPlaying(AttackBasicAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillAAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillBAnimMontage)
+                && false == Montage_IsPlaying(AttackSuperAnimMontage))
             {
-                Montage_Play(AttackAnimMontage);
+                Montage_Play(AttackBasicAnimMontage);
             }
         }
     }
@@ -93,6 +96,57 @@ void USAnimInstance::AnimNotify_CheckCanNextCombo()
     if (true == OnCheckCanNextComboDelegate.IsBound())
     {
         OnCheckCanNextComboDelegate.Broadcast();
+    }
+}
+
+void USAnimInstance::PlayAttackSkillAAnimMontage()
+{
+    if (bIsFalling == false)
+    {
+        if (true == ::IsValid(AttackSkillAAnimMontage))
+        {
+            if (false == Montage_IsPlaying(AttackBasicAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillAAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillBAnimMontage)
+                && false == Montage_IsPlaying(AttackSuperAnimMontage))
+            {
+                Montage_Play(AttackSkillAAnimMontage);
+            }
+        }
+    }
+}
+
+void USAnimInstance::PlayAttackSkillBAnimMontage()
+{
+    if (bIsFalling == false)
+    {
+        if (true == ::IsValid(AttackSkillBAnimMontage))
+        {
+            if (false == Montage_IsPlaying(AttackBasicAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillAAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillBAnimMontage)
+                && false == Montage_IsPlaying(AttackSuperAnimMontage))
+            {
+                Montage_Play(AttackSkillBAnimMontage);
+            }
+        }
+    }
+}
+
+void USAnimInstance::PlayAttackSuperAnimMontage()
+{
+    if (bIsFalling == false)
+    {
+        if (true == ::IsValid(AttackSuperAnimMontage))
+        {
+            if (false == Montage_IsPlaying(AttackBasicAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillAAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillBAnimMontage)
+                && false == Montage_IsPlaying(AttackSuperAnimMontage))
+            {
+                Montage_Play(AttackSuperAnimMontage);
+            }
+        }
     }
 }
 

@@ -69,6 +69,19 @@ void ASWKCharacter::BeginPlay()
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (true == ::IsValid(AnimInstance))
     {
+        if (false == AnimInstance->OnMontageEnded.IsAlreadyBound(this, &ThisClass::OnAttackMontageEnded))
+        {
+            AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackMontageEnded);
+        }
+        if (false == AnimInstance->OnCheckHitDelegate.IsAlreadyBound(this, &ThisClass::CheckHit))
+        {
+            AnimInstance->OnCheckHitDelegate.AddDynamic(this, &ThisClass::CheckHit);
+        }
+        if (false == AnimInstance->OnCheckCanNextComboDelegate.IsAlreadyBound(this, &ThisClass::CheckCanNextCombo))
+        {
+            AnimInstance->OnCheckCanNextComboDelegate.AddDynamic(this, &ThisClass::CheckCanNextCombo);
+        }
+
         //AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackMontageEnded);
         //AnimInstance->OnCheckHitDelegate.AddDynamic(this, &ThisClass::CheckHit);
         //AnimInstance->OnCheckCanNextComboDelegate.AddDynamic(this, &ThisClass::CheckCanNextCombo);
@@ -101,12 +114,12 @@ void ASWKCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    if (true == bIsSprintStarted || true == bIsSprintCompleted)
-    {
-        CharDeltaSeconds = DeltaSeconds;
+    //if (true == bIsSprintStarted || true == bIsSprintCompleted)
+    //{
+    //    CharDeltaSeconds = DeltaSeconds;
 
-        //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
-    }
+    //    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
+    //}
 }
 
 void ASWKCharacter::OnSprintTimer()
@@ -146,15 +159,6 @@ void ASWKCharacter::OnSprintTimer()
             bIsSprintCompleted = false;
         }
     }
-
-    // Are we done counting?
-    //if (TimerCount >= 10)
-    //{
-    //    // Clear the timer handle so it won't keep triggering events
-    //    GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
-
-    //    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Clearing the timer.")));
-    //}
 }
 
 void ASWKCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -167,20 +171,6 @@ float ASWKCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, A
 {
     float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
-    //CurrentHP = FMath::Clamp(CurrentHP - FinalDamageAmount, 0.f, MaxHP);
-
-    //if (CurrentHP < KINDA_SMALL_NUMBER)
-    //{
-    //    bIsDead = true;
-    //    CurrentHP = 0.f;
-    //    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    //    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-    //}
-
-    ParticleSystemComponent->Activate(true);
-
-    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), CurrentHP, MaxHP));
-
     return FinalDamageAmount;
 }
 
@@ -188,16 +178,17 @@ void ASWKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    //UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-    //if (true == ::IsValid(EnhancedInputComponent))
-    //{
-    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
-    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintStartedAction, ETriggerEvent::Started, this, &ThisClass::SprintStarted);
-    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintCompletedAction, ETriggerEvent::Completed, this, &ThisClass::SprintCompleted);
-    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
-    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-    //    EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
-    //}
+    UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+    if (true == ::IsValid(EnhancedInputComponent))
+    {
+        //EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->ZoomAction, ETriggerEvent::Triggered, this, &ThisClass::Zoom);
+        //EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
+        //EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintStartedAction, ETriggerEvent::Started, this, &ThisClass::SprintStarted);
+        //EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->SprintCompletedAction, ETriggerEvent::Completed, this, &ThisClass::SprintCompleted);
+        //EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+        //EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+        //EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackBasicAction, ETriggerEvent::Started, this, &ThisClass::Attack);
+    }
 }
 
 void ASWKCharacter::Move(const FInputActionValue& InValue)
@@ -251,7 +242,7 @@ void ASWKCharacter::Look(const FInputActionValue& InValue)
     AddControllerPitchInput(LookAxisVector.Y);
 }
 
-void ASWKCharacter::Attack(const FInputActionValue& InValue)
+void ASWKCharacter::AttackBasic(const FInputActionValue& InValue)
 {
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
 
@@ -345,11 +336,11 @@ void ASWKCharacter::BeginCombo()
 
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
-    AnimInstance->PlayAttackAnimMontage();
+    AnimInstance->PlayAttackBasicAnimMontage();
 
     FOnMontageEnded OnMontageEndedDelegate;
     OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
-    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackAnimMontage);
+    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackBasicAnimMontage);
 }
 
 void ASWKCharacter::CheckCanNextCombo()
@@ -365,7 +356,7 @@ void ASWKCharacter::CheckCanNextCombo()
         CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 1, MaxComboCount);
 
         FName NextSectionName = *FString::Printf(TEXT("%s%d"), *AttackAnimMontageSectionName, CurrentComboCount);
-        AnimInstance->Montage_JumpToSection(NextSectionName, AnimInstance->AttackAnimMontage);
+        AnimInstance->Montage_JumpToSection(NextSectionName, AnimInstance->AttackBasicAnimMontage);
         bIsAttackKeyPressed = false;
     }
 }

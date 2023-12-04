@@ -47,7 +47,7 @@ protected:
 
     virtual void Look(const FInputActionValue& InValue) override;
 
-    virtual void Attack(const FInputActionValue& InValue) override;
+    virtual void AttackBasic(const FInputActionValue& InValue) override;
 
 
     //UFUNCTION()
