@@ -100,15 +100,37 @@ void ASRPGCharacter::Tick(float DeltaSeconds)
     if (true == bIsSprintStarted || true == bIsSprintCompleted)
     {
         CharDeltaSeconds = DeltaSeconds;
-
-        //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
     }
+    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
 
     ////ÁÜ ¼±Çüº¸°£
     //if (FMath::Abs(SpringArmComponent->TargetArmLength - ExpectedSpringArmLength) > KINDA_SMALL_NUMBER)
     //{
     //    SpringArmComponent->TargetArmLength = FMath::Lerp(SpringArmComponent->TargetArmLength, ExpectedSpringArmLength, 0.05f);
     //}
+    if (true == bIsDashStarted)
+    {
+        const FVector TargetDirection = GetLastMovementInputVector();
+
+        if (false == TargetDirection.IsNearlyZero())
+        {
+            //DashSpeed = FMath::Lerp(
+            //    DashSpeed,
+            //    20.f,
+            //    0.5f);
+
+            LaunchCharacter(TargetDirection * 15.0f, false, false);
+        }
+        else
+        {
+            //DashSpeed = FMath::Lerp(
+            //    DashSpeed,
+            //    30.f,
+            //    2.0f);
+
+            LaunchCharacter(GetActorForwardVector() * -1 * 20.0f, false, false);
+        }
+    }
 }
 
 void ASRPGCharacter::OnSprintTimer()
@@ -123,20 +145,30 @@ void ASRPGCharacter::OnSprintTimer()
     {
         bIsSprintCompleted = false;
 
-        GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
+        GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(
             GetCharacterMovement()->MaxWalkSpeed,
             BaseSprintSpeed,
-            CharDeltaSeconds,
-            SprintInterpSpeed);
+            0.05f);
+
+        //GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
+        //    GetCharacterMovement()->MaxWalkSpeed,
+        //    BaseSprintSpeed,
+        //    CharDeltaSeconds,
+        //    SprintInterpSpeed);
     }
 
     if (true == bIsSprintCompleted)
     {
-        GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
+        GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(
             GetCharacterMovement()->MaxWalkSpeed,
             BaseWalkSpeed,
-            CharDeltaSeconds,
-            SprintInterpSpeed);
+            0.05f);
+
+        //GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
+        //    GetCharacterMovement()->MaxWalkSpeed,
+        //    BaseWalkSpeed,
+        //    CharDeltaSeconds,
+        //    SprintInterpSpeed);
 
         if (GetCharacterMovement()->MaxWalkSpeed < BaseWalkSpeed + 5.f)
         {
@@ -201,6 +233,7 @@ void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackSkillAAction, ETriggerEvent::Started, this, &ThisClass::AttackSkillA);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackSkillBAction, ETriggerEvent::Started, this, &ThisClass::AttackSkillB);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->AttackSuperAction, ETriggerEvent::Started, this, &ThisClass::AttackSuper);
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->DashAction, ETriggerEvent::Started, this, &ThisClass::Dash);
     }
 }
 
@@ -211,14 +244,14 @@ void ASRPGCharacter::Zoom(const FInputActionValue& InValue)
 
     if (InputValue >= KINDA_SMALL_NUMBER)
     {
-        //ExpectedSpringArmLength = FMath::Clamp<float>(ExpectedSpringArmLength + 30.0f, 200, 900);
-        SpringArmComponent->TargetArmLength = FMath::Clamp<float>(SpringArmComponent->TargetArmLength + 30.0f, 200.0f, 900.0f);
+        //ExpectedSpringArmLength = FMath::Clamp<float>(ExpectedSpringArmLength + 30.0f, 250.0f, 1000.0f);
+        SpringArmComponent->TargetArmLength = FMath::Clamp<float>(SpringArmComponent->TargetArmLength + 30.0f, 250.0f, 1000.0f);
     }
 
     else
     {
-        //ExpectedSpringArmLength = FMath::Clamp<float>(ExpectedSpringArmLength - 30.0f, 200, 900);
-        SpringArmComponent->TargetArmLength = FMath::Clamp<float>(SpringArmComponent->TargetArmLength - 30.0f, 200.0f, 900.0f);
+        //ExpectedSpringArmLength = FMath::Clamp<float>(ExpectedSpringArmLength - 30.0f, 250.0f, 1000.0f);
+        SpringArmComponent->TargetArmLength = FMath::Clamp<float>(SpringArmComponent->TargetArmLength - 30.0f, 250.0f, 1000.0f);
     }
 }
 
@@ -287,7 +320,7 @@ void ASRPGCharacter::AttackBasic(const FInputActionValue& InValue)
     {
         return;
     }
-    
+
     if (0 == CurrentComboCount)
     {
         BeginCombo();
@@ -317,9 +350,9 @@ void ASRPGCharacter::AttackSkillA(const FInputActionValue& InValue)
 
     AnimInstance->PlayAttackSkillAAnimMontage();
 
-    //FOnMontageEnded OnMontageEndedDelegate;
-    //OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
-    //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackBasicAnimMontage);
+    FOnMontageEnded OnMontageEndedDelegate;
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackSkillAAnimMontage);
 }
 
 void ASRPGCharacter::AttackSkillB(const FInputActionValue& InValue)
@@ -338,6 +371,10 @@ void ASRPGCharacter::AttackSkillB(const FInputActionValue& InValue)
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
     AnimInstance->PlayAttackSkillBAnimMontage();
+
+    FOnMontageEnded OnMontageEndedDelegate;
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackSkillBAnimMontage);
 }
 
 void ASRPGCharacter::AttackSuper(const FInputActionValue& InValue)
@@ -356,6 +393,57 @@ void ASRPGCharacter::AttackSuper(const FInputActionValue& InValue)
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
     AnimInstance->PlayAttackSuperAnimMontage();
+
+    FOnMontageEnded OnMontageEndedDelegate;
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackSuperAnimMontage);
+}
+
+void ASRPGCharacter::Dash(const FInputActionValue& InValue)
+{
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (false == ::IsValid(AnimInstance))
+    {
+        return;
+    }
+
+    if (true == AnimInstance->bIsFalling)
+    {
+        return;
+    }
+
+    //GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+    const FVector TargetDirection = GetLastMovementInputVector();
+
+    //const FVector TargetTransform = GetActorLocation() + GetActorForwardVector() * 50.f;
+    //SetActorRelativeLocation(TargetVector);
+
+    if (false == TargetDirection.IsNearlyZero())
+    {
+        bIsDashStarted = true;
+
+        //LaunchCharacter(TargetDirection * DashSpeed, false, false);
+
+        AnimInstance->PlayDashAnimMontage();
+
+        FOnMontageEnded OnMontageEndedDelegate;
+        OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+        AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->DashAnimMontage);
+    }
+    else
+    {
+        bIsDashStarted = true;
+
+        //LaunchCharacter(GetActorForwardVector() * -1 * DashSpeed, false, false);
+
+        AnimInstance->PlayDashBwdAnimMontage();
+
+        FOnMontageEnded OnMontageEndedDelegate;
+        OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+        AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->DashBwdAnimMontage);
+    }
+
 }
 
 void ASRPGCharacter::CheckHit()
@@ -366,7 +454,7 @@ void ASRPGCharacter::CheckHit()
     bool bResult = GetWorld()->SweepSingleByChannel(
         HitResult,
         GetActorLocation(),
-        GetActorLocation() + AttackRange,
+        GetActorLocation() + GetActorForwardVector() * AttackRange,
         FQuat::Identity,
         ECollisionChannel::ECC_EngineTraceChannel2,
         FCollisionShape::MakeSphere(AttackRadius),
@@ -376,7 +464,7 @@ void ASRPGCharacter::CheckHit()
 	//bool bResult = GetWorld()->LineTraceSingleByChannel(
 	//	HitResult,
 	//	GetActorLocation(),
-	//	GetActorLocation() + AttackRange,
+	//	GetActorLocation() + GetActorForwardVector() * AttackRange,
 	//	ECollisionChannel::ECC_EngineTraceChannel2,
     //  Params
 	//);
@@ -452,7 +540,12 @@ void ASRPGCharacter::CheckCanNextCombo()
 
 void ASRPGCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
 {
-    ensure(0 != CurrentComboCount);
+    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("EndCombo has been called.")));
+
+    //ensure(0 != CurrentComboCount);
+
+    bIsDashStarted = false;
+
     CurrentComboCount = 0;
     bIsAttackKeyPressed = false;
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);

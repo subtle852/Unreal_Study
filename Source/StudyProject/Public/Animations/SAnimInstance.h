@@ -46,6 +46,10 @@ private:
 
     void PlayAttackSuperAnimMontage();
 
+    void PlayDashAnimMontage();
+
+    void PlayDashBwdAnimMontage();
+
     UFUNCTION()
     void OnCharacterDeath();
 
@@ -88,5 +92,11 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
     TObjectPtr<class UAnimMontage> AttackSuperAnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> DashAnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> DashBwdAnimMontage;
 
 };

@@ -75,8 +75,13 @@ void USAnimInstance::PlayAttackBasicAnimMontage()
             if (false == Montage_IsPlaying(AttackBasicAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillAAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
-                && false == Montage_IsPlaying(AttackSuperAnimMontage))
+                && false == Montage_IsPlaying(AttackSuperAnimMontage)
+                && false == Montage_IsPlaying(DashAnimMontage)
+                && false == Montage_IsPlaying(DashBwdAnimMontage))
             {
+                // 플레이 할 때, bIsAttackBasic true
+                // 애니메이션 끝날 때, 델리게이트 직접 만들거나 
+                // 모든 몬타쥬 끝날때 실행되는 Montage_SetEndDelegate를 바인드걸어서 false로 바꿔주면 서로 충돌안함
                 Montage_Play(AttackBasicAnimMontage);
             }
         }
@@ -108,7 +113,9 @@ void USAnimInstance::PlayAttackSkillAAnimMontage()
             if (false == Montage_IsPlaying(AttackBasicAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillAAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
-                && false == Montage_IsPlaying(AttackSuperAnimMontage))
+                && false == Montage_IsPlaying(AttackSuperAnimMontage)
+                && false == Montage_IsPlaying(DashAnimMontage)
+                && false == Montage_IsPlaying(DashBwdAnimMontage))
             {
                 Montage_Play(AttackSkillAAnimMontage);
             }
@@ -125,7 +132,9 @@ void USAnimInstance::PlayAttackSkillBAnimMontage()
             if (false == Montage_IsPlaying(AttackBasicAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillAAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
-                && false == Montage_IsPlaying(AttackSuperAnimMontage))
+                && false == Montage_IsPlaying(AttackSuperAnimMontage)
+                && false == Montage_IsPlaying(DashAnimMontage)
+                && false == Montage_IsPlaying(DashBwdAnimMontage))
             {
                 Montage_Play(AttackSkillBAnimMontage);
             }
@@ -142,9 +151,49 @@ void USAnimInstance::PlayAttackSuperAnimMontage()
             if (false == Montage_IsPlaying(AttackBasicAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillAAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
-                && false == Montage_IsPlaying(AttackSuperAnimMontage))
+                && false == Montage_IsPlaying(AttackSuperAnimMontage)
+                && false == Montage_IsPlaying(DashAnimMontage)
+                && false == Montage_IsPlaying(DashBwdAnimMontage))
             {
                 Montage_Play(AttackSuperAnimMontage);
+            }
+        }
+    }
+}
+
+void USAnimInstance::PlayDashAnimMontage()
+{
+    if (bIsFalling == false)
+    {
+        if (true == ::IsValid(AttackSuperAnimMontage))
+        {
+            if (false == Montage_IsPlaying(AttackBasicAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillAAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillBAnimMontage)
+                && false == Montage_IsPlaying(AttackSuperAnimMontage)
+                && false == Montage_IsPlaying(DashAnimMontage)
+                && false == Montage_IsPlaying(DashBwdAnimMontage))
+            {
+                Montage_Play(DashAnimMontage);
+            }
+        }
+    }
+}
+
+void USAnimInstance::PlayDashBwdAnimMontage()
+{
+    if (bIsFalling == false)
+    {
+        if (true == ::IsValid(AttackSuperAnimMontage))
+        {
+            if (false == Montage_IsPlaying(AttackBasicAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillAAnimMontage)
+                && false == Montage_IsPlaying(AttackSkillBAnimMontage)
+                && false == Montage_IsPlaying(AttackSuperAnimMontage)
+                && false == Montage_IsPlaying(DashAnimMontage)
+                && false == Montage_IsPlaying(DashBwdAnimMontage))
+            {
+                Montage_Play(DashBwdAnimMontage);
             }
         }
     }

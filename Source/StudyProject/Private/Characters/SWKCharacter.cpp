@@ -271,57 +271,114 @@ void ASWKCharacter::AttackBasic(const FInputActionValue& InValue)
 
 void ASWKCharacter::CheckHit()
 {
-    FHitResult HitResult;
-    FCollisionQueryParams Params(NAME_None, false, this);
+    //////////////////////////////////////////////// SweepSingleByChannel
+    
+    //    FHitResult HitResult;
+    //    FCollisionQueryParams Params(NAME_None, false, this);
+    //
+    //    bool bResult = GetWorld()->SweepSingleByChannel(
+    //        HitResult,
+    //        GetActorLocation(),
+    //        GetActorLocation() + GetActorForwardVector() * AttackRange,
+    //        FQuat::Identity,
+    //        ECollisionChannel::ECC_EngineTraceChannel2,
+    //        FCollisionShape::MakeSphere(AttackRadius),
+    //        Params
+    //    );
+    //
+    //    //bool bResult = GetWorld()->LineTraceSingleByChannel(
+    //    //	HitResult,
+    //    //	GetActorLocation(),
+    //    //	GetActorLocation() + AttackRange,
+    //    //	ECollisionChannel::ECC_EngineTraceChannel2,
+    //    //  Params
+    //    //);
+    //
+    //    if (true == bResult)
+    //    {
+    //        if (true == ::IsValid(HitResult.GetActor()))
+    //        {
+    //            //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Hit Actor Name: %s"), *HitResult.GetActor()->GetName()));
+    //
+    //            FDamageEvent DamageEvent;
+    //            HitResult.GetActor()->TakeDamage(50.f, DamageEvent, GetController(), this);
+    //        }
+    //    }
+    //
+    //#pragma region CollisionDebugDrawing
+    //    FVector TraceVec = GetActorForwardVector() * AttackRange;
+    //    FVector Center = GetActorLocation() + TraceVec * 0.5f;
+    //    float HalfHeight = AttackRange * 0.5f + AttackRadius;
+    //    FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+    //    FColor DrawColor = true == bResult ? FColor::Green : FColor::Red;
+    //    float DebugLifeTime = 5.f;
+    //
+    //    DrawDebugCapsule(
+    //        GetWorld(),
+    //        Center,
+    //        HalfHeight,
+    //        AttackRadius,
+    //        CapsuleRot,
+    //        DrawColor,
+    //        false,
+    //        DebugLifeTime
+    //    );
+    //#pragma endregion
 
-    bool bResult = GetWorld()->SweepSingleByChannel(
-        HitResult,
+
+    //////////////////////////////////////////////// SweepMultiByChannel
+    FCollisionQueryParams Params(NAME_None, false, this);
+    TArray<FHitResult> SweepResults;
+
+    bool bResult = GetWorld()->SweepMultiByChannel(
+        SweepResults,
         GetActorLocation(),
-        GetActorLocation() + AttackRange,
+        GetActorLocation() + GetActorForwardVector() * AttackRange,
         FQuat::Identity,
         ECollisionChannel::ECC_EngineTraceChannel2,
         FCollisionShape::MakeSphere(AttackRadius),
         Params
     );
 
-    //bool bResult = GetWorld()->LineTraceSingleByChannel(
-    //	HitResult,
-    //	GetActorLocation(),
-    //	GetActorLocation() + AttackRange,
-    //	ECollisionChannel::ECC_EngineTraceChannel2,
-    //  Params
-    //);
+    FColor DrawColor = FColor::Red;
 
     if (true == bResult)
     {
-        if (true == ::IsValid(HitResult.GetActor()))
+        for (auto const& HitResult : SweepResults)
         {
-            //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Hit Actor Name: %s"), *HitResult.GetActor()->GetName()));
+            ASCharacter* NPC = Cast<ASCharacter>(HitResult.GetActor());
+            if (true == ::IsValid(NPC))
+            {
+				// UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Detected!")));
+				DrawColor = FColor::Green;
 
-            FDamageEvent DamageEvent;
-            HitResult.GetActor()->TakeDamage(50.f, DamageEvent, GetController(), this);
-        }
-    }
+                FDamageEvent DamageEvent;
+                HitResult.GetActor()->TakeDamage(50.f, DamageEvent, GetController(), this);
+				//return;
+			}
+			else
+			{
+				//DrawColor = FColor::Red;
+			}
+		}
+	}
 
-#pragma region CollisionDebugDrawing
-    FVector TraceVec = GetActorForwardVector() * AttackRange;
-    FVector Center = GetActorLocation() + TraceVec * 0.5f;
-    float HalfHeight = AttackRange * 0.5f + AttackRadius;
-    FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
-    FColor DrawColor = true == bResult ? FColor::Green : FColor::Red;
-    float DebugLifeTime = 5.f;
+	FVector TraceVec = GetActorForwardVector() * AttackRange;
+	FVector Center = GetActorLocation() + TraceVec * 0.5f;
+	float HalfHeight = AttackRange * 0.5f + AttackRadius;
+	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+	//FColor DrawColor = true == bResult ? FColor::Green : FColor::Red;
+	float DebugLifeTime = 5.f;
 
-    DrawDebugCapsule(
-        GetWorld(),
-        Center,
-        HalfHeight,
-        AttackRadius,
-        CapsuleRot,
-        DrawColor,
-        false,
-        DebugLifeTime
-    );
-#pragma endregion
+	DrawDebugCapsule(
+		GetWorld(),
+		Center,
+		HalfHeight,
+		AttackRadius,
+		CapsuleRot,
+		DrawColor,
+		false,
+		DebugLifeTime);
 }
 
 void ASWKCharacter::BeginCombo()
@@ -363,7 +420,10 @@ void ASWKCharacter::CheckCanNextCombo()
 
 void ASWKCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
 {
-    ensure(0 != CurrentComboCount);
+    //ensure(0 != CurrentComboCount);
+
+    bIsDashStarted = false;
+
     CurrentComboCount = 0;
     bIsAttackKeyPressed = false;
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);

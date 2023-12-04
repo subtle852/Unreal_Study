@@ -57,6 +57,7 @@ protected:
 
     virtual void AttackSuper(const FInputActionValue& InValue);
 
+    virtual void Dash(const FInputActionValue& InValue);
 
     UFUNCTION()
     virtual void CheckHit();
@@ -93,7 +94,7 @@ protected:
 
     // Zoom
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess = true))
-    float ExpectedSpringArmLength = 400.0f;
+    float ExpectedSpringArmLength = 550.0f;
 
     // Attack
     uint8 bIsAttacking : 1;
@@ -106,7 +107,7 @@ protected:
 
     bool bIsAttackKeyPressed = false;// 에디터에서 관리되거나 시리얼라이즈 될 필요 없으므로 그냥 bool 자료형 사용가능
 
-    float AttackRange = 200.f;
+    float AttackRange = 250.f;
 
     float AttackRadius = 50.f;
 
@@ -123,4 +124,9 @@ protected:
     float CharDeltaSeconds;
 
     float SprintInterpSpeed = 50.f;
+
+    // Dash
+    bool bIsDashStarted = false;
+
+    //float DashSpeed = 0.f;
 };
