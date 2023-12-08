@@ -161,18 +161,23 @@ void ASWKCharacter::OnSprintTimer()
     }
 }
 
-void ASWKCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-    bIsAttacking = false;
-}
+//void ASWKCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+//{
+//    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+//    bIsAttacking = false;
+//}
 
-float ASWKCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-    float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
-
-    return FinalDamageAmount;
-}
+//float ASWKCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+//{
+//    float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+//
+//    if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
+//    {
+//        GetMesh()->SetSimulatePhysics(true);
+//    }
+//
+//    return FinalDamageAmount;
+//}
 
 void ASWKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -241,33 +246,33 @@ void ASWKCharacter::Look(const FInputActionValue& InValue)
     AddControllerYawInput(LookAxisVector.X);
     AddControllerPitchInput(LookAxisVector.Y);
 }
-
-void ASWKCharacter::AttackBasic(const FInputActionValue& InValue)
-{
-    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
-
-    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-    if (false == ::IsValid(AnimInstance))
-    {
-        return;
-    }
-
-    if (true == AnimInstance->bIsFalling)
-    {
-        return;
-    }
-
-    if (0 == CurrentComboCount)
-    {
-        BeginCombo();
-        return;
-    }
-    else
-    {
-        ensure(FMath::IsWithinInclusive<int32>(CurrentComboCount, 1, MaxComboCount));
-        bIsAttackKeyPressed = true;
-    }
-}
+//
+//void ASWKCharacter::AttackBasic(const FInputActionValue& InValue)
+//{
+//    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
+//
+//    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+//    if (false == ::IsValid(AnimInstance))
+//    {
+//        return;
+//    }
+//
+//    if (true == AnimInstance->bIsFalling)
+//    {
+//        return;
+//    }
+//
+//    if (0 == CurrentComboCount)
+//    {
+//        BeginCombo();
+//        return;
+//    }
+//    else
+//    {
+//        ensure(FMath::IsWithinInclusive<int32>(CurrentComboCount, 1, MaxComboCount));
+//        bIsAttackKeyPressed = true;
+//    }
+//}
 
 void ASWKCharacter::CheckHit()
 {
@@ -325,7 +330,6 @@ void ASWKCharacter::CheckHit()
     //    );
     //#pragma endregion
 
-
     //////////////////////////////////////////////// SweepMultiByChannel
     FCollisionQueryParams Params(NAME_None, false, this);
     TArray<FHitResult> SweepResults;
@@ -353,7 +357,7 @@ void ASWKCharacter::CheckHit()
 				DrawColor = FColor::Green;
 
                 FDamageEvent DamageEvent;
-                HitResult.GetActor()->TakeDamage(50.f, DamageEvent, GetController(), this);
+                HitResult.GetActor()->TakeDamage(10.f, DamageEvent, GetController(), this);
 				//return;
 			}
 			else
@@ -396,38 +400,38 @@ void ASWKCharacter::BeginCombo()
     AnimInstance->PlayAttackBasicAnimMontage();
 
     FOnMontageEnded OnMontageEndedDelegate;
-    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
     AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackBasicAnimMontage);
 }
 
-void ASWKCharacter::CheckCanNextCombo()
-{
-    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-    if (false == ::IsValid(AnimInstance))
-    {
-        return;
-    }
+//void ASWKCharacter::CheckCanNextCombo()
+//{
+//    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+//    if (false == ::IsValid(AnimInstance))
+//    {
+//        return;
+//    }
+//
+//    if (true == bIsAttackKeyPressed)
+//    {
+//        CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 1, MaxComboCount);
+//
+//        FName NextSectionName = *FString::Printf(TEXT("%s%d"), *AttackAnimMontageSectionName, CurrentComboCount);
+//        AnimInstance->Montage_JumpToSection(NextSectionName, AnimInstance->AttackBasicAnimMontage);
+//        bIsAttackKeyPressed = false;
+//    }
+//}
 
-    if (true == bIsAttackKeyPressed)
-    {
-        CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 1, MaxComboCount);
-
-        FName NextSectionName = *FString::Printf(TEXT("%s%d"), *AttackAnimMontageSectionName, CurrentComboCount);
-        AnimInstance->Montage_JumpToSection(NextSectionName, AnimInstance->AttackBasicAnimMontage);
-        bIsAttackKeyPressed = false;
-    }
-}
-
-void ASWKCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
-{
-    //ensure(0 != CurrentComboCount);
-
-    bIsDashStarted = false;
-
-    CurrentComboCount = 0;
-    bIsAttackKeyPressed = false;
-    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-}
+//void ASWKCharacter::MontageEnded(UAnimMontage* InAnimMontage, bool bInterrupted)
+//{
+//    //ensure(0 != CurrentComboCount);
+//
+//    bIsDashStarted = false;
+//
+//    CurrentComboCount = 0;
+//    bIsAttackKeyPressed = false;
+//    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+//}
 
 void ASWKCharacter::OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel)
 {

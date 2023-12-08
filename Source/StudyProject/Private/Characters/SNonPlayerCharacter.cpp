@@ -10,6 +10,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SStatComponent.h"
 #include "Game/SPlayerState.h"
+#include "Engine/EngineTypes.h"
+#include "Engine/DamageEvents.h"
 
 #include "Components/SWidgetComponent.h"
 #include "UI/StudyUserWidget.h"
@@ -129,26 +131,73 @@ void ASNonPlayerCharacter::SetWidget(UStudyUserWidget* InStudyUserWidget)
 
 void ASNonPlayerCharacter::Attack()
 {
-    FHitResult HitResult;
+    TSet<AActor*> DetectedActors;
     FCollisionQueryParams Params(NAME_None, false, this);
+    TArray<FHitResult> SweepResults;
 
-    bool bResult = GetWorld()->SweepSingleByChannel(
-        HitResult,
+    // Sweep 사용시 SweepResults에 하나의 객체가 중복 탐색되는 경우가 발생
+    bool bResult = GetWorld()->SweepMultiByChannel(
+        SweepResults,
         GetActorLocation(),
-        GetActorLocation() + AttackRange,
+        GetActorLocation() + GetActorForwardVector() * AttackRange,
         FQuat::Identity,
         ECollisionChannel::ECC_EngineTraceChannel2,
         FCollisionShape::MakeSphere(AttackRadius),
         Params
     );
 
+    //bool bResult = GetWorld()->LineTraceMultiByChannel(
+    //    SweepResults,
+    //    GetActorLocation(),
+    //    GetActorLocation() + GetActorForwardVector() * AttackRange,
+    //    ECollisionChannel::ECC_EngineTraceChannel2,
+    //    Params
+    //);
+
+    FColor DrawColor = FColor::Red;
+
     if (true == bResult)
     {
-        if (true == ::IsValid(HitResult.GetActor()))
+        for (auto const& HitResult : SweepResults)
         {
-            UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("[NPC] Hit Actor Name: %s"), *HitResult.GetActor()->GetName()));
+            ASRPGCharacter* PC = Cast<ASRPGCharacter>(HitResult.GetActor());
+            if (true == ::IsValid(PC))
+            {
+                // 중복 탐색을 막기위해 TSet 사용
+                if (false == DetectedActors.Contains(HitResult.GetActor()))
+                {
+                    DetectedActors.Add(HitResult.GetActor());
+
+                    DrawColor = FColor::Green;
+
+                    FDamageEvent DamageEvent;
+                    HitResult.GetActor()->TakeDamage(0.f, DamageEvent, GetController(), this);
+                    //return;
+                }
+            }
+            else
+            {
+                //DrawColor = FColor::Red;
+            }
         }
     }
+
+    FVector TraceVec = GetActorForwardVector() * AttackRange;
+    FVector Center = GetActorLocation() + TraceVec * 0.5f;
+    float HalfHeight = AttackRange * 0.5f + AttackRadius;
+    FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+    //FColor DrawColor = true == bResult ? FColor::Green : FColor::Red;
+    float DebugLifeTime = 5.f;
+
+    DrawDebugCapsule(
+        GetWorld(),
+        Center,
+        HalfHeight,
+        AttackRadius,
+        CapsuleRot,
+        DrawColor,
+        false,
+        DebugLifeTime);
 
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (true == ::IsValid(AnimInstance))
@@ -160,26 +209,6 @@ void ASNonPlayerCharacter::Attack()
             AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackAnimMontageEnded);
         }
     }
-
-#pragma region CollisionDebugDrawing
-    FVector TraceVec = GetActorForwardVector() * AttackRange;
-    FVector Center = GetActorLocation() + TraceVec * 0.5f;
-    float HalfHeight = AttackRange * 0.5f + AttackRadius;
-    FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
-    FColor DrawColor = true == bResult ? FColor::Green : FColor::Red;
-    float DebugLifeTime = 5.f;
-
-    DrawDebugCapsule(
-        GetWorld(),
-        Center,
-        HalfHeight,
-        AttackRadius,
-        CapsuleRot,
-        DrawColor,
-        false,
-        DebugLifeTime
-    );
-#pragma endregion
 }
 
 void ASNonPlayerCharacter::OnAttackAnimMontageEnded(UAnimMontage* Montage, bool bIsInterrupt)

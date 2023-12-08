@@ -68,7 +68,12 @@ protected:
     virtual void CheckCanNextCombo();
 
     UFUNCTION()
-    virtual void EndCombo(class UAnimMontage* InAnimMontage, bool bInterrupted);
+    virtual void MontageEnded(class UAnimMontage* InAnimMontage, bool bInterrupted);
+    // 몽타주가 완전히 종료될 때 호출 (정상적으로 종료되거나 강제로 종료되었을 때 모두 해당)
+
+    UFUNCTION()
+    virtual void MontageBlendingOut(class UAnimMontage* InAnimMontage, bool bInterrupted);
+    // 몽타주가 블렌딩 아웃될 때 호출 (몽타주가 종료되면서 현재 애니메이션과 다른 애니메이션 또는 블렌드로 전환되는 시점에 호출)
 
     UFUNCTION()
     virtual void OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel);
@@ -127,6 +132,9 @@ protected:
 
     // Dash
     bool bIsDashStarted = false;
+    // Dash중 jog모션 없도록 하려면 Dash시작할 때, Dash 끝날때 StatComponent 델리게이트 만들어야 함
 
-    //float DashSpeed = 0.f;
+
+    // Invincible
+    bool bIsInvincible = false;
 };

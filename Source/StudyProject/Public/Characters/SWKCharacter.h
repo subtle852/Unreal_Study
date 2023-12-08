@@ -32,9 +32,9 @@ public:
 
 
     //UFUNCTION()
-    virtual void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted) override;
+    //virtual void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted) override;
 
-    virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+    //virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -47,7 +47,7 @@ protected:
 
     virtual void Look(const FInputActionValue& InValue) override;
 
-    virtual void AttackBasic(const FInputActionValue& InValue) override;
+    //virtual void AttackBasic(const FInputActionValue& InValue) override;
 
 
     //UFUNCTION()
@@ -56,10 +56,10 @@ protected:
     virtual void BeginCombo() override;
 
     //UFUNCTION()
-    virtual void CheckCanNextCombo() override;
+    //virtual void CheckCanNextCombo() override;
 
     //UFUNCTION()
-    virtual void EndCombo(class UAnimMontage* InAnimMontage, bool bInterrupted) override;
+    //virtual void MontageEnded(class UAnimMontage* InAnimMontage, bool bInterrupted) override;
 
     //UFUNCTION()
     virtual void OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel) override;

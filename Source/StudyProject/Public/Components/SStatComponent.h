@@ -7,6 +7,7 @@
 #include "SStatComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnOutOfCurrentHPDelegate);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHitReactDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSprintDelegate, bool, InSprint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCurrentHPChangeDelegate, float, InOldCurrentHP, float, InNewCurrentHP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMaxHPChangeDelegate, float, InOldMaxHP, float, InNewMaxHP);
@@ -45,6 +46,8 @@ public:
     FOnMaxHPChangeDelegate OnMaxHPChangeDelegate;
 
     FOnSprintDelegate OnSprintDelegate;
+
+    //FOnHitReactDelegate OnHitReactDelegate;
 
 private:
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "USStatComponent", Meta = (AllowPrivateAccess))

@@ -18,6 +18,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/SStatComponent.h"
 #include "Game/SPlayerState.h"
+#include "PhysicsEngine/PhysicsAsset.h"
 
 ASRPGCharacter::ASRPGCharacter()
     : bIsAttacking(false)
@@ -38,7 +39,7 @@ ASRPGCharacter::ASRPGCharacter()
 
     GetCharacterMovement()->bOrientRotationToMovement = true;
     GetCharacterMovement()->bUseControllerDesiredRotation = false;
-    GetCharacterMovement()->RotationRate = FRotator(0.f, 480.f, 0.f);
+    GetCharacterMovement()->RotationRate = FRotator(0.f, 600.f, 0.f);
 
     GetCapsuleComponent()->SetCollisionProfileName(TEXT("SCharacter"));
 
@@ -101,6 +102,7 @@ void ASRPGCharacter::Tick(float DeltaSeconds)
     {
         CharDeltaSeconds = DeltaSeconds;
     }
+    
     //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
 
     ////줌 선형보간
@@ -108,29 +110,7 @@ void ASRPGCharacter::Tick(float DeltaSeconds)
     //{
     //    SpringArmComponent->TargetArmLength = FMath::Lerp(SpringArmComponent->TargetArmLength, ExpectedSpringArmLength, 0.05f);
     //}
-    if (true == bIsDashStarted)
-    {
-        const FVector TargetDirection = GetLastMovementInputVector();
 
-        if (false == TargetDirection.IsNearlyZero())
-        {
-            //DashSpeed = FMath::Lerp(
-            //    DashSpeed,
-            //    20.f,
-            //    0.5f);
-
-            LaunchCharacter(TargetDirection * 15.0f, false, false);
-        }
-        else
-        {
-            //DashSpeed = FMath::Lerp(
-            //    DashSpeed,
-            //    30.f,
-            //    2.0f);
-
-            LaunchCharacter(GetActorForwardVector() * -1 * 20.0f, false, false);
-        }
-    }
 }
 
 void ASRPGCharacter::OnSprintTimer()
@@ -193,26 +173,99 @@ void ASRPGCharacter::OnSprintTimer()
 
 void ASRPGCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-    bIsAttacking = false;
+    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("OnAttackMontageEnded")));
+    //GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+    //bIsAttacking = false;
 }
 
 float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-    float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+    if (true == bIsInvincible)
+        return 0.0f;
 
-    //CurrentHP = FMath::Clamp(CurrentHP - FinalDamageAmount, 0.f, MaxHP);
-
-    //if (CurrentHP < KINDA_SMALL_NUMBER)
+    //USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    //if (true == ::IsValid(AnimInstance))
     //{
-    //    bIsDead = true;
-    //    CurrentHP = 0.f;
-    //    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    //    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+    //    if (true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage))
+    //    {
+    //        return 0.0f;
+    //    }
     //}
 
-    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), CurrentHP, MaxHP));
+    float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
+    if (true == ::IsValid(DamageCauser))
+    {
+        FVector DirectionToHit = (DamageCauser->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+        FVector ForwardVector = GetActorForwardVector();
+        float DotProduct = FVector::DotProduct(DirectionToHit, ForwardVector);
+
+        float AngleRadians = FMath::Acos(DotProduct);
+        float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
+        float CrossProduct = FVector::CrossProduct(DirectionToHit, ForwardVector).Z;
+        if (CrossProduct < 0)
+        {
+            AngleDegrees = 360.0f - AngleDegrees;
+        }
+
+        USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+        if (true == ::IsValid(AnimInstance))
+        {
+            // Case 1. 입력을 강제로 막고 애니메이션 실행
+            // 이부분을 해주지 않으면 Jog 모션과 함께 HitReact가 진행이 됨
+            // GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);을 해도 똑같이 오류 발생
+            APlayerController* PlayerController = Cast<APlayerController>(GetController());
+            if (true == ::IsValid(PlayerController))
+            {
+                PlayerController->SetIgnoreMoveInput(true);
+            }
+
+            // Case 2. 넉백
+            FVector CharacterLocation = GetActorLocation();
+            FVector NPCLocation = DamageCauser->GetActorLocation();
+            FVector KnockbackDirection = (CharacterLocation - NPCLocation).GetSafeNormal();
+
+            KnockbackDirection += DamageCauser->GetActorForwardVector();
+            KnockbackDirection.Normalize();
+
+            LaunchCharacter(KnockbackDirection * 1000.f, false, false);
+
+            AnimInstance->PlayHitReactAnimMontage(AngleDegrees);
+
+            FOnMontageEnded OnMontageEndedDelegate;
+            OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
+            AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactFwdAnimMontage);
+            AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactBwdAnimMontage);
+            AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactLeftAnimMontage);
+            AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactRightAnimMontage);
+        }
+
+        UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Angle between hit direction and player forward vector : %f"), AngleDegrees));
+    }
+
+
+    if (false == ::IsValid(GetStatComponent()))
+    {
+        return FinalDamageAmount;
+    }
+
+    if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
+    {
+        // Ragdoll을 활성화하기 전에 PhysicsAsset이 있는지 확인
+        if (USkeletalMeshComponent* MeshComponent = GetMesh())
+        {
+            if (UPhysicsAsset* PhysicsAsset = MeshComponent->GetPhysicsAsset())
+            {
+                // PhysicsAsset을 사용하여 Ragdoll 설정
+                //MeshComponent->SetPhysicsAsset(PhysicsAsset);
+                MeshComponent->SetSimulatePhysics(true);
+
+                // 땅과 상호작용하는 부분만 활성화
+                //MeshComponent->SetAllBodiesBelowSimulatePhysics(NAME_None, true);
+            }
+        }
+    }
+    
     return FinalDamageAmount;
 }
 
@@ -308,7 +361,7 @@ void ASRPGCharacter::Look(const FInputActionValue& InValue)
 
 void ASRPGCharacter::AttackBasic(const FInputActionValue& InValue)
 {
-   //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
+    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Attack() has been called.")));
 
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (false == ::IsValid(AnimInstance))
@@ -318,8 +371,33 @@ void ASRPGCharacter::AttackBasic(const FInputActionValue& InValue)
 
     if (true == AnimInstance->bIsFalling)
     {
+        AttackRange = 200.f;
+        AttackRadius = 50.f;
+
+        AnimInstance->PlayAttackAirAnimMontage();
+
+        FOnMontageEnded OnMontageEndedDelegate;
+        OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
+        AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackAirAnimMontage);
+
         return;
     }
+
+    if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->HitReactFwdAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->HitReactBwdAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->HitReactLeftAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->HitReactRightAnimMontage))
+    {
+        return;
+    }
+
+    AttackRange = 200.f;
+    AttackRadius = 50.f;
 
     if (0 == CurrentComboCount)
     {
@@ -346,12 +424,39 @@ void ASRPGCharacter::AttackSkillA(const FInputActionValue& InValue)
         return;
     }
 
+    if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackBasicAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage))
+    {
+        return;
+    }
+
+    AttackRange = 450.f;
+    AttackRadius = 50.f;
+
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+    // 추후에 이 부분이 어색하다면,
+    // 원신처럼 가장 가까운 몬스터를 쳐다보도록 현재 엑터의 방향을 설정해주면 됨
+    const FVector TargetDirection = GetLastMovementInputVector();
+
+    if (false == TargetDirection.IsNearlyZero())
+    {
+        FRotator TargetRotation = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
+        SetActorRotation(TargetRotation);
+    }
 
     AnimInstance->PlayAttackSkillAAnimMontage();
 
+    //FOnMontageBlendingOutStarted OnMontageBlendingOutDelegate;
+    //OnMontageBlendingOutDelegate.BindUObject(this, &ThisClass::MontageBlendingOut);
+    //AnimInstance->Montage_SetBlendingOutDelegate(OnMontageBlendingOutDelegate, AnimInstance->AttackSkillAAnimMontage);
+
     FOnMontageEnded OnMontageEndedDelegate;
-    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
     AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackSkillAAnimMontage);
 }
 
@@ -368,12 +473,33 @@ void ASRPGCharacter::AttackSkillB(const FInputActionValue& InValue)
         return;
     }
 
+    if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackBasicAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage))
+    {
+        return;
+    }
+
+    AttackRange = 600.f;
+    AttackRadius = 50.f;
+
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+    const FVector TargetDirection = GetLastMovementInputVector();
+
+    if (false == TargetDirection.IsNearlyZero())
+    {
+        FRotator TargetRotation = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
+        SetActorRotation(TargetRotation);
+    }
 
     AnimInstance->PlayAttackSkillBAnimMontage();
 
     FOnMontageEnded OnMontageEndedDelegate;
-    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
     AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackSkillBAnimMontage);
 }
 
@@ -390,12 +516,35 @@ void ASRPGCharacter::AttackSuper(const FInputActionValue& InValue)
         return;
     }
 
+    if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackBasicAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage))
+    {
+        return;
+    }
+
+    bIsInvincible = true;
+
+    AttackRange = 250.f;
+    AttackRadius = 100.f;
+
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+    const FVector TargetDirection = GetLastMovementInputVector();
+
+    if (false == TargetDirection.IsNearlyZero())
+    {
+        FRotator TargetRotation = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
+        SetActorRotation(TargetRotation);
+    }
 
     AnimInstance->PlayAttackSuperAnimMontage();
 
     FOnMontageEnded OnMontageEndedDelegate;
-    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
     AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackSuperAnimMontage);
 }
 
@@ -409,10 +558,36 @@ void ASRPGCharacter::Dash(const FInputActionValue& InValue)
 
     if (true == AnimInstance->bIsFalling)
     {
+        LaunchCharacter(GetActorForwardVector() * 500.0f, false, false);
+        AnimInstance->PlayDashAnimMontage();
+        //bIsDashStarted = true;
+
         return;
     }
 
-    //GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+    if (true == AnimInstance->bIsSprint)
+    {
+        //bIsDashStarted = true;
+        LaunchCharacter(GetActorForwardVector() * 1500.0f, false, false);
+
+        return;
+    }
+
+    if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackBasicAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->HitReactFwdAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->HitReactBwdAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->HitReactLeftAnimMontage)
+        || true == AnimInstance->Montage_IsPlaying(AnimInstance->HitReactRightAnimMontage))
+    {
+        return;
+    }
+
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
     const FVector TargetDirection = GetLastMovementInputVector();
 
@@ -422,25 +597,27 @@ void ASRPGCharacter::Dash(const FInputActionValue& InValue)
     if (false == TargetDirection.IsNearlyZero())
     {
         bIsDashStarted = true;
+        bIsInvincible = true;
 
-        //LaunchCharacter(TargetDirection * DashSpeed, false, false);
+        GetCharacterMovement()->MaxWalkSpeed = BaseSprintSpeed;
 
         AnimInstance->PlayDashAnimMontage();
 
         FOnMontageEnded OnMontageEndedDelegate;
-        OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+        OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
         AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->DashAnimMontage);
     }
     else
     {
         bIsDashStarted = true;
+        bIsInvincible = true;
 
-        //LaunchCharacter(GetActorForwardVector() * -1 * DashSpeed, false, false);
+        LaunchCharacter(GetActorForwardVector() * -1 * 2000.0f, false, false);
 
         AnimInstance->PlayDashBwdAnimMontage();
 
         FOnMontageEnded OnMontageEndedDelegate;
-        OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+        OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
         AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->DashBwdAnimMontage);
     }
 
@@ -448,25 +625,25 @@ void ASRPGCharacter::Dash(const FInputActionValue& InValue)
 
 void ASRPGCharacter::CheckHit()
 {
-    FHitResult HitResult;
-    FCollisionQueryParams Params(NAME_None, false, this);
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
 
-    bool bResult = GetWorld()->SweepSingleByChannel(
-        HitResult,
-        GetActorLocation(),
-        GetActorLocation() + GetActorForwardVector() * AttackRange,
-        FQuat::Identity,
-        ECollisionChannel::ECC_EngineTraceChannel2,
-        FCollisionShape::MakeSphere(AttackRadius),
-        Params
-    );
+	bool bResult = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		GetActorLocation(),
+		GetActorLocation() + GetActorForwardVector() * AttackRange,
+		FQuat::Identity,
+		ECollisionChannel::ECC_EngineTraceChannel2,
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params
+	);
 
-	//bool bResult = GetWorld()->LineTraceSingleByChannel(
-	//	HitResult,
+	//bool bResult = GetWorld()->LineTraceMultiByChannel(
+	//	TraceResults,
 	//	GetActorLocation(),
 	//	GetActorLocation() + GetActorForwardVector() * AttackRange,
 	//	ECollisionChannel::ECC_EngineTraceChannel2,
-    //  Params
+	//	Params
 	//);
 
     if (true == bResult)
@@ -476,7 +653,7 @@ void ASRPGCharacter::CheckHit()
             //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Hit Actor Name: %s"), *HitResult.GetActor()->GetName()));
 
             FDamageEvent DamageEvent;
-            HitResult.GetActor()->TakeDamage(50.f, DamageEvent, GetController(), this);
+            HitResult.GetActor()->TakeDamage(10.f, DamageEvent, GetController(), this);
         }
     }
 
@@ -516,7 +693,7 @@ void ASRPGCharacter::BeginCombo()
     AnimInstance->PlayAttackBasicAnimMontage();
 
     FOnMontageEnded OnMontageEndedDelegate;
-    OnMontageEndedDelegate.BindUObject(this, &ThisClass::EndCombo);
+    OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
     AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackBasicAnimMontage);
 }
 
@@ -530,6 +707,16 @@ void ASRPGCharacter::CheckCanNextCombo()
 
     if (true == bIsAttackKeyPressed)
     {
+        const FVector TargetDirection = GetLastMovementInputVector();
+
+        if (false == TargetDirection.IsNearlyZero())
+        {
+            FRotator TargetRotation = FRotationMatrix::MakeFromX(TargetDirection).Rotator();
+            SetActorRotation(TargetRotation);
+        }
+
+        GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
         CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 1, MaxComboCount);
 
         FName NextSectionName = *FString::Printf(TEXT("%s%d"), *AttackAnimMontageSectionName, CurrentComboCount);
@@ -538,17 +725,126 @@ void ASRPGCharacter::CheckCanNextCombo()
     }
 }
 
-void ASRPGCharacter::EndCombo(UAnimMontage* InAnimMontage, bool bInterrupted)
+void ASRPGCharacter::MontageEnded(UAnimMontage* InAnimMontage, bool bInterrupted)
 {
-    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("EndCombo has been called.")));
+    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MontageEnded has been called.")));
 
-    //ensure(0 != CurrentComboCount);
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (true == ::IsValid(AnimInstance))
+    {
+        if (AnimInstance->AttackBasicAnimMontage == InAnimMontage)
+        {
+            ensure(0 != CurrentComboCount);
+            CurrentComboCount = 0;
+            bIsAttackKeyPressed = false;
 
-    bIsDashStarted = false;
+            if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackBasicAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage))
+            {
+                return;
+            }
 
-    CurrentComboCount = 0;
-    bIsAttackKeyPressed = false;
-    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+            GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+            // 문제 1
+            // 애니메이션 함수 충돌 안하도록 만들어야 함
+
+            // 문제 2
+            // A애니메이션 직후 바로 B애니메이션 동작시킬 때,
+            // A애니메이션 MontageEnded 보다 B애니메이션 함수가 먼저 실행이 되면
+            // Move_Walking 상태로 B애니메이션이 진행되는 경우가 발생 
+        }
+
+        if (AnimInstance->AttackSkillAAnimMontage == InAnimMontage)
+        {
+            if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackBasicAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage))
+            {
+                return;
+            }
+
+            GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+        }
+
+        if (AnimInstance->AttackSkillBAnimMontage == InAnimMontage)
+        {
+            if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackBasicAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage))
+            {
+                return;
+            }
+
+            GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+        }
+
+        if (AnimInstance->AttackSuperAnimMontage == InAnimMontage)
+        {
+            if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackBasicAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillAAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSkillBAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackSuperAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashAnimMontage)
+                || true == AnimInstance->Montage_IsPlaying(AnimInstance->DashBwdAnimMontage))
+            {
+                return;
+            }
+
+            bIsInvincible = false;
+            GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+        }
+
+        if (AnimInstance->DashAnimMontage == InAnimMontage)
+        {
+            bIsDashStarted = false;
+            bIsInvincible = false;
+            GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+        }
+
+        if (AnimInstance->DashBwdAnimMontage == InAnimMontage)
+        {
+            bIsDashStarted = false;
+            bIsInvincible = false;
+        }
+
+        if (AnimInstance->HitReactFwdAnimMontage == InAnimMontage
+            || AnimInstance->HitReactBwdAnimMontage == InAnimMontage
+            || AnimInstance->HitReactLeftAnimMontage == InAnimMontage
+            || AnimInstance->HitReactRightAnimMontage == InAnimMontage)
+        {
+            APlayerController* PlayerController = Cast<APlayerController>(GetController());
+            if (true == ::IsValid(PlayerController))
+            {
+                PlayerController->SetIgnoreMoveInput(false);
+            }
+
+            //GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+        }
+    }
+
+}
+
+void ASRPGCharacter::MontageBlendingOut(UAnimMontage* InAnimMontage, bool bInterrupted)
+{
+    if (bInterrupted)
+    {
+        // 몽타주가 중간에 끊긴 경우
+    }
+    else
+    {
+        // 몽타주가 완전히 종료된 경우
+    }
 }
 
 void ASRPGCharacter::OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel)

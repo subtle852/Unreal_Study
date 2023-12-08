@@ -40,6 +40,8 @@ private:
     UFUNCTION()
     void AnimNotify_CheckCanNextCombo();
 
+    void PlayAttackAirAnimMontage();
+
     void PlayAttackSkillAAnimMontage();
 
     void PlayAttackSkillBAnimMontage();
@@ -49,6 +51,8 @@ private:
     void PlayDashAnimMontage();
 
     void PlayDashBwdAnimMontage();
+
+    void PlayHitReactAnimMontage(float InDegree);
 
     UFUNCTION()
     void OnCharacterDeath();
@@ -76,6 +80,8 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
     uint8 bIsSprint : 1;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    uint8 bIsDash : 1;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
     TObjectPtr<class UAnimMontage> AttackBasicAnimMontage;
@@ -83,6 +89,9 @@ protected:
     FOnCheckHitDelegate OnCheckHitDelegate;
 
     FOnCheckCanNextComboDelegate OnCheckCanNextComboDelegate;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> AttackAirAnimMontage;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
     TObjectPtr<class UAnimMontage> AttackSkillAAnimMontage;
@@ -98,5 +107,17 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
     TObjectPtr<class UAnimMontage> DashBwdAnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> HitReactFwdAnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> HitReactBwdAnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> HitReactLeftAnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UAnimMontage> HitReactRightAnimMontage;
 
 };

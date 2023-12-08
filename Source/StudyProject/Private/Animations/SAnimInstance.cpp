@@ -27,6 +27,8 @@ void USAnimInstance::NativeInitializeAnimation()
 
     bIsSprint = false;
 
+    bIsDash = false;
+
     ASCharacter* OwnerCharacter = Cast<ASCharacter>(TryGetPawnOwner());
     if (true == ::IsValid(OwnerCharacter))
     {
@@ -77,11 +79,12 @@ void USAnimInstance::PlayAttackBasicAnimMontage()
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
                 && false == Montage_IsPlaying(AttackSuperAnimMontage)
                 && false == Montage_IsPlaying(DashAnimMontage)
-                && false == Montage_IsPlaying(DashBwdAnimMontage))
+                && false == Montage_IsPlaying(DashBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactFwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactLeftAnimMontage)
+                && false == Montage_IsPlaying(HitReactRightAnimMontage))
             {
-                // 플레이 할 때, bIsAttackBasic true
-                // 애니메이션 끝날 때, 델리게이트 직접 만들거나 
-                // 모든 몬타쥬 끝날때 실행되는 Montage_SetEndDelegate를 바인드걸어서 false로 바꿔주면 서로 충돌안함
                 Montage_Play(AttackBasicAnimMontage);
             }
         }
@@ -104,6 +107,18 @@ void USAnimInstance::AnimNotify_CheckCanNextCombo()
     }
 }
 
+void USAnimInstance::PlayAttackAirAnimMontage()
+{
+    if (bIsFalling == true)
+    {
+        if (true == ::IsValid(AttackAirAnimMontage))
+        {
+            if (false == Montage_IsPlaying(AttackAirAnimMontage))
+            Montage_Play(AttackAirAnimMontage);
+        }
+    }
+}
+
 void USAnimInstance::PlayAttackSkillAAnimMontage()
 {
     if (bIsFalling == false)
@@ -115,7 +130,11 @@ void USAnimInstance::PlayAttackSkillAAnimMontage()
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
                 && false == Montage_IsPlaying(AttackSuperAnimMontage)
                 && false == Montage_IsPlaying(DashAnimMontage)
-                && false == Montage_IsPlaying(DashBwdAnimMontage))
+                && false == Montage_IsPlaying(DashBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactFwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactLeftAnimMontage)
+                && false == Montage_IsPlaying(HitReactRightAnimMontage))
             {
                 Montage_Play(AttackSkillAAnimMontage);
             }
@@ -134,7 +153,11 @@ void USAnimInstance::PlayAttackSkillBAnimMontage()
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
                 && false == Montage_IsPlaying(AttackSuperAnimMontage)
                 && false == Montage_IsPlaying(DashAnimMontage)
-                && false == Montage_IsPlaying(DashBwdAnimMontage))
+                && false == Montage_IsPlaying(DashBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactFwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactLeftAnimMontage)
+                && false == Montage_IsPlaying(HitReactRightAnimMontage))
             {
                 Montage_Play(AttackSkillBAnimMontage);
             }
@@ -153,7 +176,11 @@ void USAnimInstance::PlayAttackSuperAnimMontage()
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
                 && false == Montage_IsPlaying(AttackSuperAnimMontage)
                 && false == Montage_IsPlaying(DashAnimMontage)
-                && false == Montage_IsPlaying(DashBwdAnimMontage))
+                && false == Montage_IsPlaying(DashBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactFwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactLeftAnimMontage)
+                && false == Montage_IsPlaying(HitReactRightAnimMontage))
             {
                 Montage_Play(AttackSuperAnimMontage);
             }
@@ -163,38 +190,84 @@ void USAnimInstance::PlayAttackSuperAnimMontage()
 
 void USAnimInstance::PlayDashAnimMontage()
 {
-    if (bIsFalling == false)
+    if (true == ::IsValid(DashAnimMontage))
     {
-        if (true == ::IsValid(AttackSuperAnimMontage))
+        if (false == Montage_IsPlaying(AttackBasicAnimMontage)
+            && false == Montage_IsPlaying(AttackSkillAAnimMontage)
+            && false == Montage_IsPlaying(AttackSkillBAnimMontage)
+            && false == Montage_IsPlaying(AttackSuperAnimMontage)
+            && false == Montage_IsPlaying(DashAnimMontage)
+            && false == Montage_IsPlaying(DashBwdAnimMontage)
+            && false == Montage_IsPlaying(HitReactFwdAnimMontage)
+            && false == Montage_IsPlaying(HitReactBwdAnimMontage)
+            && false == Montage_IsPlaying(HitReactLeftAnimMontage)
+            && false == Montage_IsPlaying(HitReactRightAnimMontage))
         {
-            if (false == Montage_IsPlaying(AttackBasicAnimMontage)
-                && false == Montage_IsPlaying(AttackSkillAAnimMontage)
-                && false == Montage_IsPlaying(AttackSkillBAnimMontage)
-                && false == Montage_IsPlaying(AttackSuperAnimMontage)
-                && false == Montage_IsPlaying(DashAnimMontage)
-                && false == Montage_IsPlaying(DashBwdAnimMontage))
-            {
-                Montage_Play(DashAnimMontage);
-            }
+            Montage_Play(DashAnimMontage);
         }
     }
+    
 }
 
 void USAnimInstance::PlayDashBwdAnimMontage()
 {
     if (bIsFalling == false)
     {
-        if (true == ::IsValid(AttackSuperAnimMontage))
+        if (true == ::IsValid(DashBwdAnimMontage))
         {
             if (false == Montage_IsPlaying(AttackBasicAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillAAnimMontage)
                 && false == Montage_IsPlaying(AttackSkillBAnimMontage)
                 && false == Montage_IsPlaying(AttackSuperAnimMontage)
                 && false == Montage_IsPlaying(DashAnimMontage)
-                && false == Montage_IsPlaying(DashBwdAnimMontage))
+                && false == Montage_IsPlaying(DashBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactFwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactBwdAnimMontage)
+                && false == Montage_IsPlaying(HitReactLeftAnimMontage)
+                && false == Montage_IsPlaying(HitReactRightAnimMontage))
             {
                 Montage_Play(DashBwdAnimMontage);
             }
+        }
+    }
+}
+
+void USAnimInstance::PlayHitReactAnimMontage(float InDegree)
+{
+    if (true == Montage_IsPlaying(AttackSuperAnimMontage)
+        || true == Montage_IsPlaying(DashAnimMontage)
+        || true == Montage_IsPlaying(DashBwdAnimMontage))
+    {
+        return;
+    }
+
+    if (0 <= InDegree && InDegree <= 45
+        || 315 <= InDegree && InDegree <= 365)
+    {
+        if (true == ::IsValid(HitReactFwdAnimMontage))
+        {
+            Montage_Play(HitReactFwdAnimMontage);
+        }
+    }
+    if (45 < InDegree && InDegree <= 135)
+    {
+        if (true == ::IsValid(HitReactLeftAnimMontage))
+        {
+            Montage_Play(HitReactLeftAnimMontage);
+        }
+    }
+    if (135 < InDegree && InDegree <= 225)
+    {
+        if (true == ::IsValid(HitReactBwdAnimMontage))
+        {
+            Montage_Play(HitReactBwdAnimMontage);
+        }
+    }
+    if (225 <= InDegree && InDegree < 315)
+    {
+        if (true == ::IsValid(HitReactRightAnimMontage))
+        {
+            Montage_Play(HitReactRightAnimMontage);
         }
     }
 }
