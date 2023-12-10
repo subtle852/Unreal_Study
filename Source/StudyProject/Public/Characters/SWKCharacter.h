@@ -23,7 +23,7 @@ public:
     virtual void Tick(float DeltaSeconds) override;
 
     // ≈∏¿Ã∏”
-    void OnSprintTimer();
+    //void OnSprintTimer();
 
     //// InputValue
     //float GetForwardInputValue() const { return ForwardInputValue; }
@@ -41,9 +41,9 @@ protected:
 
     virtual void Move(const FInputActionValue& InValue) override;
 
-    virtual void SprintStarted(const FInputActionValue& InValue) override;
+    //virtual void SprintStarted(const FInputActionValue& InValue) override;
 
-    virtual void SprintCompleted(const FInputActionValue& InValue) override;
+    //virtual void SprintCompleted(const FInputActionValue& InValue) override;
 
     virtual void Look(const FInputActionValue& InValue) override;
 
@@ -53,7 +53,7 @@ protected:
     //UFUNCTION()
     virtual void CheckHit() override;
 
-    virtual void BeginCombo() override;
+    //virtual void BeginCombo() override;
 
     //UFUNCTION()
     //virtual void CheckCanNextCombo() override;

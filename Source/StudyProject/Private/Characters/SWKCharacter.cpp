@@ -122,44 +122,44 @@ void ASWKCharacter::Tick(float DeltaSeconds)
     //}
 }
 
-void ASWKCharacter::OnSprintTimer()
-{
-    SprintTimerCount += 0.25f;
-
-    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Timer Tick: %f"), SprintTimerCount));
-
-    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
-
-    if (true == bIsSprintStarted)
-    {
-        bIsSprintCompleted = false;
-
-        GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
-            GetCharacterMovement()->MaxWalkSpeed,
-            BaseSprintSpeed,
-            CharDeltaSeconds,
-            SprintInterpSpeed);
-    }
-
-    if (true == bIsSprintCompleted)
-    {
-        GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
-            GetCharacterMovement()->MaxWalkSpeed,
-            BaseWalkSpeed,
-            CharDeltaSeconds,
-            SprintInterpSpeed);
-
-        if (GetCharacterMovement()->MaxWalkSpeed < BaseWalkSpeed + 5.f)
-        {
-            GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-
-            GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
-            SprintTimerCount = 0.f;
-
-            bIsSprintCompleted = false;
-        }
-    }
-}
+//void ASWKCharacter::OnSprintTimer()
+//{
+//    SprintTimerCount += 0.25f;
+//
+//    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Timer Tick: %f"), SprintTimerCount));
+//
+//    //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
+//
+//    if (true == bIsSprintStarted)
+//    {
+//        bIsSprintCompleted = false;
+//
+//        GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
+//            GetCharacterMovement()->MaxWalkSpeed,
+//            BaseSprintSpeed,
+//            CharDeltaSeconds,
+//            SprintInterpSpeed);
+//    }
+//
+//    if (true == bIsSprintCompleted)
+//    {
+//        GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
+//            GetCharacterMovement()->MaxWalkSpeed,
+//            BaseWalkSpeed,
+//            CharDeltaSeconds,
+//            SprintInterpSpeed);
+//
+//        if (GetCharacterMovement()->MaxWalkSpeed < BaseWalkSpeed + 5.f)
+//        {
+//            GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+//
+//            GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
+//            SprintTimerCount = 0.f;
+//
+//            bIsSprintCompleted = false;
+//        }
+//    }
+//}
 
 //void ASWKCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 //{
@@ -212,32 +212,32 @@ void ASWKCharacter::Move(const FInputActionValue& InValue)
     AddMovementInput(RightDirection, MovementVector.Y);
 }
 
-void ASWKCharacter::SprintStarted(const FInputActionValue& InValue)
-{
-    if (GetCharacterMovement()->IsFalling() == true)
-        return;
-
-    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintStarted")));
-
-    bIsSprintStarted = true;
-
-    GetWorld()->GetTimerManager().SetTimer(SprintTimerHandle, this, &ThisClass::OnSprintTimer, 0.25f, true);
-
-    StatComponent->SetIsSprint(true);
-}
-
-void ASWKCharacter::SprintCompleted(const FInputActionValue& InValue)
-{
-    //if (GetCharacterMovement()->IsFalling() == true)
-    //    return;
-
-    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintCompleted")));
-
-    bIsSprintStarted = false;
-    bIsSprintCompleted = true;
-
-    StatComponent->SetIsSprint(false);
-}
+//void ASWKCharacter::SprintStarted(const FInputActionValue& InValue)
+//{
+//    if (GetCharacterMovement()->IsFalling() == true)
+//        return;
+//
+//    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintStarted")));
+//
+//    bIsSprintStarted = true;
+//
+//    GetWorld()->GetTimerManager().SetTimer(SprintTimerHandle, this, &ThisClass::OnSprintTimer, 0.25f, true);
+//
+//    StatComponent->SetIsSprint(true);
+//}
+//
+//void ASWKCharacter::SprintCompleted(const FInputActionValue& InValue)
+//{
+//    //if (GetCharacterMovement()->IsFalling() == true)
+//    //    return;
+//
+//    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("SprintCompleted")));
+//
+//    bIsSprintStarted = false;
+//    bIsSprintCompleted = true;
+//
+//    StatComponent->SetIsSprint(false);
+//}
 
 void ASWKCharacter::Look(const FInputActionValue& InValue)
 {
@@ -331,13 +331,28 @@ void ASWKCharacter::CheckHit()
     //#pragma endregion
 
     //////////////////////////////////////////////// SweepMultiByChannel
+
+    FVector TargetVector = GetActorForwardVector();
+
+    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+    if (true == ::IsValid(AnimInstance))
+    {
+        if (true == AnimInstance->Montage_IsPlaying(AnimInstance->AttackAirAnimMontage))
+        {
+            FRotator Rotator = GetActorForwardVector().Rotation();
+            Rotator.Pitch -= 25.0f;// 각도 아래로 Pitch 회전
+            FVector DiagnolVector = FRotationMatrix(Rotator).GetUnitAxis(EAxis::X);
+            TargetVector = DiagnolVector;
+        }
+    }
+
     FCollisionQueryParams Params(NAME_None, false, this);
     TArray<FHitResult> SweepResults;
 
     bool bResult = GetWorld()->SweepMultiByChannel(
         SweepResults,
         GetActorLocation(),
-        GetActorLocation() + GetActorForwardVector() * AttackRange,
+        GetActorLocation() + TargetVector * AttackRange,
         FQuat::Identity,
         ECollisionChannel::ECC_EngineTraceChannel2,
         FCollisionShape::MakeSphere(AttackRadius),
@@ -367,42 +382,45 @@ void ASWKCharacter::CheckHit()
 		}
 	}
 
-	FVector TraceVec = GetActorForwardVector() * AttackRange;
-	FVector Center = GetActorLocation() + TraceVec * 0.5f;
-	float HalfHeight = AttackRange * 0.5f + AttackRadius;
-	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
-	//FColor DrawColor = true == bResult ? FColor::Green : FColor::Red;
-	float DebugLifeTime = 5.f;
+    // 충돌 디버그 
+    FVector TraceVec = TargetVector * AttackRange;
+    FVector Center = GetActorLocation() + TraceVec * 0.5f;
+    float HalfHeight = AttackRange * 0.5f + AttackRadius;
+    FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+    //FColor DrawColor = true == bResult ? FColor::Green : FColor::Red;
+    float DebugLifeTime = 5.f;
 
-	DrawDebugCapsule(
-		GetWorld(),
-		Center,
-		HalfHeight,
-		AttackRadius,
-		CapsuleRot,
-		DrawColor,
-		false,
-		DebugLifeTime);
+    DrawDebugCapsule(
+        GetWorld(),
+        Center,
+        HalfHeight,
+        AttackRadius,
+        CapsuleRot,
+        DrawColor,
+        false,
+        DebugLifeTime
+    );
+
 }
 
-void ASWKCharacter::BeginCombo()
-{
-    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-    if (false == ::IsValid(AnimInstance))
-    {
-        return;
-    }
-
-    CurrentComboCount = 1;
-
-    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-
-    AnimInstance->PlayAttackBasicAnimMontage();
-
-    FOnMontageEnded OnMontageEndedDelegate;
-    OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
-    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackBasicAnimMontage);
-}
+//void ASWKCharacter::BeginCombo()
+//{
+//    USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+//    if (false == ::IsValid(AnimInstance))
+//    {
+//        return;
+//    }
+//
+//    CurrentComboCount = 1;
+//
+//    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+//
+//    AnimInstance->PlayAttackBasicAnimMontage();
+//
+//    FOnMontageEnded OnMontageEndedDelegate;
+//    OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
+//    AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->AttackBasicAnimMontage);
+//}
 
 //void ASWKCharacter::CheckCanNextCombo()
 //{

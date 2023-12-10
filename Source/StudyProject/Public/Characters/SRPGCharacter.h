@@ -13,7 +13,8 @@ class STUDYPROJECT_API ASRPGCharacter : public ASCharacter
     GENERATED_BODY()
 
     // 애님노티파이 클래스
-    friend class UAN_CheckHit;
+    friend class UAN_CheckHit; 
+    friend class UAN_SequenceEnded;
 
 public:
     ASRPGCharacter();
@@ -51,6 +52,8 @@ protected:
 
     virtual void AttackBasic(const FInputActionValue& InValue);
 
+    virtual void AttackAir(const FInputActionValue& InValue);
+
     virtual void AttackSkillA(const FInputActionValue& InValue);
 
     virtual void AttackSkillB(const FInputActionValue& InValue);
@@ -61,6 +64,9 @@ protected:
 
     UFUNCTION()
     virtual void CheckHit();
+
+    UFUNCTION()
+    virtual void SequenceEnded();
 
     virtual void BeginCombo();
 
@@ -97,6 +103,12 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", meta = (AllowPrivateAccess))
     TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
+    TSubclassOf<class UCameraShakeBase> AttackShake;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
+    TSubclassOf<class UCameraShakeBase> HitReactShake;
+
     // Zoom
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess = true))
     float ExpectedSpringArmLength = 550.0f;
@@ -124,9 +136,6 @@ protected:
     FTimerHandle SprintTimerHandle;
 
     float SprintTimerCount = 0.f;
-
-    UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
-    float CharDeltaSeconds;
 
     float SprintInterpSpeed = 50.f;
 

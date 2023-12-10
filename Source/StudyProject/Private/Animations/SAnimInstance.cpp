@@ -29,6 +29,8 @@ void USAnimInstance::NativeInitializeAnimation()
 
     bIsDash = false;
 
+    bIsHitReact = false;
+
     ASCharacter* OwnerCharacter = Cast<ASCharacter>(TryGetPawnOwner());
     if (true == ::IsValid(OwnerCharacter))
     {
@@ -244,30 +246,30 @@ void USAnimInstance::PlayHitReactAnimMontage(float InDegree)
     if (0 <= InDegree && InDegree <= 45
         || 315 <= InDegree && InDegree <= 365)
     {
-        if (true == ::IsValid(HitReactFwdAnimMontage))
-        {
-            Montage_Play(HitReactFwdAnimMontage);
-        }
-    }
-    if (45 < InDegree && InDegree <= 135)
-    {
-        if (true == ::IsValid(HitReactLeftAnimMontage))
-        {
-            Montage_Play(HitReactLeftAnimMontage);
-        }
-    }
-    if (135 < InDegree && InDegree <= 225)
-    {
         if (true == ::IsValid(HitReactBwdAnimMontage))
         {
             Montage_Play(HitReactBwdAnimMontage);
         }
     }
-    if (225 <= InDegree && InDegree < 315)
+    if (45 < InDegree && InDegree <= 135)
     {
         if (true == ::IsValid(HitReactRightAnimMontage))
         {
             Montage_Play(HitReactRightAnimMontage);
+        }
+    }
+    if (135 < InDegree && InDegree <= 225)
+    {
+        if (true == ::IsValid(HitReactFwdAnimMontage))
+        {
+            Montage_Play(HitReactFwdAnimMontage);
+        }
+    }
+    if (225 <= InDegree && InDegree < 315)
+    {
+        if (true == ::IsValid(HitReactLeftAnimMontage))
+        {
+            Montage_Play(HitReactLeftAnimMontage);
         }
     }
 }

@@ -83,6 +83,12 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
     uint8 bIsDash : 1;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    uint8 bIsHitReact : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    float AngleDegree;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
     TObjectPtr<class UAnimMontage> AttackBasicAnimMontage;
 
