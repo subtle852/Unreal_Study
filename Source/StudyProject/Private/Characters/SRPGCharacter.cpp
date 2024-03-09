@@ -40,7 +40,10 @@ ASRPGCharacter::ASRPGCharacter()
 
     GetCharacterMovement()->bOrientRotationToMovement = true;
     GetCharacterMovement()->bUseControllerDesiredRotation = false;
-    GetCharacterMovement()->RotationRate = FRotator(0.f, 600.f, 0.f);
+    GetCharacterMovement()->RotationRate = FRotator(0.f, 300.f, 0.f);
+
+    GetCharacterMovement()->GravityScale = 2.0f;
+    GetCharacterMovement()->JumpZVelocity = 800.0f;
 
     GetCapsuleComponent()->SetCollisionProfileName(TEXT("SCharacter"));
 
@@ -109,6 +112,11 @@ void ASRPGCharacter::Tick(float DeltaSeconds)
     //}
 
     //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f"), GetCharacterMovement()->MaxWalkSpeed));
+
+    if (true == bIsDashBwd)
+    {
+        AddMovementInput(DashBwdDirection, 1.0f);
+    }
 }
 
 void ASRPGCharacter::OnSprintTimer()
@@ -150,6 +158,16 @@ void ASRPGCharacter::OnSprintTimer()
 
                 return;
             }
+        }
+
+        if (true == bIsDash)
+        {
+            GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
+            SprintTimerCount = 0.f;
+
+            bIsSprintCompleted = false;
+
+            return;
         }
 
         GetCharacterMovement()->MaxWalkSpeed = FMath::FInterpTo(
@@ -215,79 +233,79 @@ float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 
         //UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Angle between hit direction and player forward vector : %f"), AngleDegrees));
 
-        USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-        if (true == ::IsValid(AnimInstance))
+        // Death
+        if (false == ::IsValid(GetStatComponent()))
         {
-            // 타격을 받은 시점이
-            // 이미 Sequence 도중에 SequenceEnded()가 호출되지 않은 시점인 경우,
-            // 다시 Sequence 처음부터 실행시키기 위한 부분
-            SequenceEnded();
-
-            // 움직임 막기
-            // 방법 1) MovementMode 변경으로 움직임 제한으로 변경
-            // 넉백이 정상적으로 안이루어지는 버그가 발생
-            // 움직임 막기와 넉백의 순서를 바꿔도 마찬가지
-            //GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-
-            // 방법 2) 컨트롤러 Move 막기
-            APlayerController* PlayerController = Cast<APlayerController>(GetController());
-            if (true == ::IsValid(PlayerController))
-            {
-                PlayerController->SetIgnoreMoveInput(true);
-            }
-
-            // 넉백
-            FVector CharacterLocation = GetActorLocation();
-            FVector NPCLocation = DamageCauser->GetActorLocation();
-            FVector KnockbackDirection = (CharacterLocation - NPCLocation).GetSafeNormal();
-
-            KnockbackDirection += DamageCauser->GetActorForwardVector();
-            KnockbackDirection.Normalize();
-
-            LaunchCharacter(KnockbackDirection * 1000.f, false, false);
-
-            // 넉백 카메라 쉐이크
-            //APlayerController* PlayerController = Cast<APlayerController>(GetController());
-            if (true == ::IsValid(HitReactShake))
-            {
-                PlayerController->ClientStartCameraShake(HitReactShake);
-            }
-
-            // 현재 버전) 애니메이션 블랜드 스페이스
-            // 애니메이션 블랜드 스페이스 실행 조건 변수 활성화
-            AnimInstance->AngleDegree = AngleDegrees;
-            AnimInstance->bIsHitReact = true;
-            
-            // 구버전) 애니메이션 몽타주
-            //AnimInstance->PlayHitReactAnimMontage(AngleDegrees);
-
-            //FOnMontageEnded OnMontageEndedDelegate;
-            //OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
-            //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactFwdAnimMontage);
-            //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactBwdAnimMontage);
-            //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactLeftAnimMontage);
-            //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactRightAnimMontage);
+            return FinalDamageAmount;
         }
-    }
 
-    // 체력 0에 가까운 값이되면 RagDoll
-    if (false == ::IsValid(GetStatComponent()))
-    {
-        return FinalDamageAmount;
-    }
-
-    if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
-    {
-        // Ragdoll을 활성화하기 전에 PhysicsAsset이 있는지 확인
-        if (USkeletalMeshComponent* MeshComponent = GetMesh())
+        if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
         {
-            if (UPhysicsAsset* PhysicsAsset = MeshComponent->GetPhysicsAsset())
+            USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+            if (true == ::IsValid(AnimInstance))
             {
-                // MeshComponent->SetPhysicsAsset(PhysicsAsset);// 오류가 발생할 경우, 초기화 해주는 부분
-                MeshComponent->SetSimulatePhysics(true);
-                // MeshComponent->SetAllBodiesBelowSimulatePhysics(NAME_None, true);// 땅과 상호작용하는 부분만 활성화하는 부분
+                AnimInstance->AngleDegree = AngleDegrees;
             }
         }
+
+        // HitReact
+        else
+        {
+            USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+            if (true == ::IsValid(AnimInstance))
+            {
+                // 타격을 받은 시점이
+                // 이미 Sequence 도중에 SequenceEnded()가 호출되지 않은 시점인 경우,
+                // 다시 Sequence 처음부터 실행시키기 위한 부분
+                SequenceEnded();
+
+                // 움직임 막기
+                // 방법 1) MovementMode 변경으로 움직임 제한으로 변경
+                // 넉백이 정상적으로 안이루어지는 버그가 발생
+                // 움직임 막기와 넉백의 순서를 바꿔도 마찬가지
+                //GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+                // 방법 2) 컨트롤러 Move 막기
+                APlayerController* PlayerController = Cast<APlayerController>(GetController());
+                if (true == ::IsValid(PlayerController))
+                {
+                    PlayerController->SetIgnoreMoveInput(true);
+                }
+
+                // 넉백
+                FVector CharacterLocation = GetActorLocation();
+                FVector NPCLocation = DamageCauser->GetActorLocation();
+                FVector KnockbackDirection = (CharacterLocation - NPCLocation).GetSafeNormal();
+
+                KnockbackDirection += DamageCauser->GetActorForwardVector();
+                KnockbackDirection.Normalize();
+
+                LaunchCharacter(KnockbackDirection * 1000.f, false, false);
+
+                // 넉백 카메라 쉐이크
+                //APlayerController* PlayerController = Cast<APlayerController>(GetController());
+                if (true == ::IsValid(HitReactShake))
+                {
+                    PlayerController->ClientStartCameraShake(HitReactShake);
+                }
+
+                // 현재 버전) 애니메이션 블랜드 스페이스
+                // 애니메이션 블랜드 스페이스 실행 조건 변수 활성화
+                AnimInstance->AngleDegree = AngleDegrees;
+                AnimInstance->bIsHitReact = true;
+
+                // 구버전) 애니메이션 몽타주
+                //AnimInstance->PlayHitReactAnimMontage(AngleDegrees);
+
+                //FOnMontageEnded OnMontageEndedDelegate;
+                //OnMontageEndedDelegate.BindUObject(this, &ThisClass::MontageEnded);
+                //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactFwdAnimMontage);
+                //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactBwdAnimMontage);
+                //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactLeftAnimMontage);
+                //AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate, AnimInstance->HitReactRightAnimMontage);
+            }
+        }
+
     }
     
     return FinalDamageAmount;
@@ -337,6 +355,9 @@ void ASRPGCharacter::Zoom(const FInputActionValue& InValue)
 
 void ASRPGCharacter::Move(const FInputActionValue& InValue)
 {
+    if (true == bIsDashBwd)
+        return;
+
     FVector2D MovementVector = InValue.Get<FVector2D>();
     ForwardInputValue = MovementVector.X;
     RightInputValue = MovementVector.Y;
@@ -349,6 +370,12 @@ void ASRPGCharacter::Move(const FInputActionValue& InValue)
 
     AddMovementInput(ForwardDirection, MovementVector.X);
     AddMovementInput(RightDirection, MovementVector.Y);
+
+    if (true == bIsDash)
+    {
+        AddMovementInput(ForwardDirection, MovementVector.X);
+        AddMovementInput(RightDirection, MovementVector.Y);
+    }
 }
 
 void ASRPGCharacter::SprintStarted(const FInputActionValue& InValue)
@@ -604,6 +631,9 @@ void ASRPGCharacter::AttackSuper(const FInputActionValue& InValue)
 
 void ASRPGCharacter::Dash(const FInputActionValue& InValue)
 {
+    if (true == bIsDash || true == bIsDashBwd)
+        return;
+
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
     if (false == ::IsValid(AnimInstance))
     {
@@ -618,15 +648,16 @@ void ASRPGCharacter::Dash(const FInputActionValue& InValue)
 
         LaunchCharacter(DiagnolVector * 500.0f, false, false);
         AnimInstance->PlayDashAnimMontage();
-        //bIsDashStarted = true;
+        //bIsDash = true;
 
         return;
     }
 
     if (true == AnimInstance->bIsSprint)
     {
-        //bIsDashStarted = true;
-        LaunchCharacter(GetActorForwardVector() * 1500.0f, false, false);
+        // 현재 막아놓은 상태
+        //bIsDash = true;
+        //LaunchCharacter(GetActorForwardVector() * 1500.0f, false, false);
 
         return;
     }
@@ -642,7 +673,7 @@ void ASRPGCharacter::Dash(const FInputActionValue& InValue)
         return;
     }
 
-    bIsDashStarted = true;
+    bIsDash = true;
     bIsInvincible = true;
 
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
@@ -650,7 +681,7 @@ void ASRPGCharacter::Dash(const FInputActionValue& InValue)
     const FVector TargetDirection = GetLastMovementInputVector();
     if (false == TargetDirection.IsNearlyZero())
     {
-        GetCharacterMovement()->MaxWalkSpeed = BaseSprintSpeed;
+        GetCharacterMovement()->MaxWalkSpeed = BaseSprintSpeed * 1.25f;
 
         AnimInstance->PlayDashAnimMontage();
 
@@ -660,7 +691,9 @@ void ASRPGCharacter::Dash(const FInputActionValue& InValue)
     }
     else
     {
-        LaunchCharacter(GetActorForwardVector() * -1 * 2000.0f, false, false);
+        bIsDashBwd = true;
+        GetCharacterMovement()->bOrientRotationToMovement = false;
+        DashBwdDirection = GetActorForwardVector() * -1;
 
         AnimInstance->PlayDashBwdAnimMontage();
 
@@ -868,7 +901,7 @@ void ASRPGCharacter::MontageEnded(UAnimMontage* InAnimMontage, bool bInterrupted
 
         if (AnimInstance->AttackAirAnimMontage == InAnimMontage)
         {
-            GetCharacterMovement()->GravityScale = 1.0f;
+            GetCharacterMovement()->GravityScale = 2.0f;
         }
 
         if (AnimInstance->AttackSkillAAnimMontage == InAnimMontage)
@@ -922,15 +955,19 @@ void ASRPGCharacter::MontageEnded(UAnimMontage* InAnimMontage, bool bInterrupted
 
         if (AnimInstance->DashAnimMontage == InAnimMontage)
         {
-            bIsDashStarted = false;
+            bIsDash = false;
             bIsInvincible = false;
+
             GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
         }
 
         if (AnimInstance->DashBwdAnimMontage == InAnimMontage)
         {
-            bIsDashStarted = false;
+            bIsDash = false;
+            bIsDashBwd = false;
             bIsInvincible = false;
+
+            GetCharacterMovement()->bOrientRotationToMovement = true;
         }
 
         //if (AnimInstance->HitReactFwdAnimMontage == InAnimMontage

@@ -1,3 +1,14 @@
+# Intermediate
+Intermediate/*
+
+# assets
+Content/InfinityBladeAdversaries/*
+Content/InfinityBladeEffects/*
+Content/ParagonKhaimera/*
+Content/ParagonKwang/*
+Content/ParagonSunWukong/*
+Content/ModularGothicFantasyEnvironment/*
+
 # Visual Studio 2015 user specific files
 .vs/
 

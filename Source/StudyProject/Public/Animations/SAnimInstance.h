@@ -54,6 +54,10 @@ private:
 
     void PlayHitReactAnimMontage(float InDegree);
 
+    void PlayDeathLeftAnimMontage();
+
+    void PlayDeathRightAnimMontage();
+
     UFUNCTION()
     void OnCharacterDeath();
 
@@ -125,5 +129,11 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
     TObjectPtr<class UAnimMontage> HitReactRightAnimMontage;
+
+    //UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    //TObjectPtr<class UAnimMontage> DeathLeftAnimMontage;
+
+    //UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+    //TObjectPtr<class UAnimMontage> DeathRightAnimMontage;
 
 };

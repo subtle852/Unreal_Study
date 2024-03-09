@@ -151,7 +151,7 @@ void ASTestCharacter::Attack()
                     DrawColor = FColor::Green;
 
                     FDamageEvent DamageEvent;
-                    HitResult.GetActor()->TakeDamage(0.f, DamageEvent, GetController(), this);
+                    HitResult.GetActor()->TakeDamage(50.f, DamageEvent, GetController(), this);
                     //return;
                 }
             }

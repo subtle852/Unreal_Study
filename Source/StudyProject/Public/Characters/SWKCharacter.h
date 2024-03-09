@@ -39,7 +39,7 @@ public:
 protected:
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-    virtual void Move(const FInputActionValue& InValue) override;
+    //virtual void Move(const FInputActionValue& InValue) override;
 
     //virtual void SprintStarted(const FInputActionValue& InValue) override;
 

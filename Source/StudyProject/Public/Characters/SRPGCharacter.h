@@ -140,9 +140,12 @@ protected:
     float SprintInterpSpeed = 50.f;
 
     // Dash
-    bool bIsDashStarted = false;
+    bool bIsDash = false;
     // Dash중 jog모션 없도록 하려면 Dash시작할 때, Dash 끝날때 StatComponent 델리게이트 만들어야 함
 
+    bool bIsDashBwd = false;
+    FVector DashBwdDirection = FVector::ZeroVector;
+    float DashBwdValue = 100.f;
 
     // Invincible
     bool bIsInvincible = false;

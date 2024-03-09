@@ -274,6 +274,28 @@ void USAnimInstance::PlayHitReactAnimMontage(float InDegree)
     }
 }
 
+//void USAnimInstance::PlayDeathLeftAnimMontage()
+//{
+//    if (true == ::IsValid(AttackBasicAnimMontage))
+//    {
+//        if (false == Montage_IsPlaying(DeathLeftAnimMontage))
+//        {
+//            Montage_Play(DeathLeftAnimMontage);
+//        }
+//    }
+//}
+//
+//void USAnimInstance::PlayDeathRightAnimMontage()
+//{
+//    if (true == ::IsValid(DeathRightAnimMontage))
+//    {
+//        if (false == Montage_IsPlaying(DeathRightAnimMontage))
+//        {
+//            Montage_Play(DeathRightAnimMontage);
+//        }
+//    }
+//}
+
 void USAnimInstance::OnCharacterDeath()
 {
     bIsDead = true;

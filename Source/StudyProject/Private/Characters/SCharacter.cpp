@@ -35,11 +35,7 @@ ASCharacter::ASCharacter()
     GetCharacterMovement()->AirControl = 0.35f;
     GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
-    //bIsDead = false;
-
     StatComponent = CreateDefaultSubobject<USStatComponent>(TEXT("StatComponent"));
-
-    //bIsSprint = false;
 }
 
 void ASCharacter::BeginPlay()

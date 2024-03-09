@@ -196,21 +196,21 @@ void ASWKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
     }
 }
 
-void ASWKCharacter::Move(const FInputActionValue& InValue)
-{
-    FVector2D MovementVector = InValue.Get<FVector2D>();
-    ForwardInputValue = MovementVector.X;
-    RightInputValue = MovementVector.Y;
-
-    const FRotator CurrentControlRotation = GetController()->GetControlRotation();
-    const FRotator CurrentControlRotationYaw(0.f, CurrentControlRotation.Yaw, 0.f);
-
-    FVector ForwardDirection = FRotationMatrix(CurrentControlRotationYaw).GetUnitAxis(EAxis::X);
-    FVector RightDirection = FRotationMatrix(CurrentControlRotationYaw).GetUnitAxis(EAxis::Y);
-
-    AddMovementInput(ForwardDirection, MovementVector.X);
-    AddMovementInput(RightDirection, MovementVector.Y);
-}
+//void ASWKCharacter::Move(const FInputActionValue& InValue)
+//{
+//    FVector2D MovementVector = InValue.Get<FVector2D>();
+//    ForwardInputValue = MovementVector.X;
+//    RightInputValue = MovementVector.Y;
+//
+//    const FRotator CurrentControlRotation = GetController()->GetControlRotation();
+//    const FRotator CurrentControlRotationYaw(0.f, CurrentControlRotation.Yaw, 0.f);
+//
+//    FVector ForwardDirection = FRotationMatrix(CurrentControlRotationYaw).GetUnitAxis(EAxis::X);
+//    FVector RightDirection = FRotationMatrix(CurrentControlRotationYaw).GetUnitAxis(EAxis::Y);
+//
+//    AddMovementInput(ForwardDirection, MovementVector.X);
+//    AddMovementInput(RightDirection, MovementVector.Y);
+//}
 
 //void ASWKCharacter::SprintStarted(const FInputActionValue& InValue)
 //{
@@ -444,7 +444,7 @@ void ASWKCharacter::CheckHit()
 //{
 //    //ensure(0 != CurrentComboCount);
 //
-//    bIsDashStarted = false;
+//    bIsDash = false;
 //
 //    CurrentComboCount = 0;
 //    bIsAttackKeyPressed = false;
